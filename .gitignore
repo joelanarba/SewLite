@@ -1,0 +1,40 @@
+# General
+node_modules/
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Mobile Build Outputs (if prebuilt)
+/mobile/android/
+/mobile/ios/
+
+# Backend
+/backend/coverage/
+/backend/build/
+/backend/dist/
+serviceAccountKey.json
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+walkthrough.md
+task.md
+implementation_plan.md
+README.md
