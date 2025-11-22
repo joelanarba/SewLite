@@ -3,6 +3,7 @@ const { sendOrderStatusUpdate } = require('../services/notificationService');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const { sendSuccess } = require('../utils/responseHandler');
+const { updateCustomerBalance } = require('../utils/balanceCalculator');
 
 const COLLECTION_NAME = 'orders';
 
@@ -71,6 +72,9 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     io.emit('orderUpdated', { orderId: docRef.id, ...newOrder, id: docRef.id });
   }
 
+  // Update customer balance
+  await updateCustomerBalance(customerId);
+
   sendSuccess(res, { id: docRef.id }, 'Order created successfully', 201);
 });
 
@@ -131,6 +135,9 @@ exports.updateOrder = catchAsync(async (req, res, next) => {
   if (io) {
     io.emit('orderUpdated', updatedOrder);
   }
+
+  // Update customer balance
+  await updateCustomerBalance(currentOrder.customerId);
 
   sendSuccess(res, { order: updatedOrder }, 'Order updated successfully');
 });

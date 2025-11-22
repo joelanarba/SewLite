@@ -50,7 +50,7 @@ exports.getCustomerById = catchAsync(async (req, res, next) => {
 
 // POST /customers
 exports.createCustomer = catchAsync(async (req, res, next) => {
-  const { name, phone, measurements, item, pickupDate, fittingDate, balance, notes } = req.body;
+  const { name, phone, measurements, item, pickupDate, fittingDate, notes } = req.body;
 
   if (!name || !phone) {
     return next(new AppError('Name and Phone are required', 400));
@@ -63,7 +63,7 @@ exports.createCustomer = catchAsync(async (req, res, next) => {
     item: item || '',
     pickupDate: toTimestamp(pickupDate),
     fittingDate: toTimestamp(fittingDate),
-    balance: balance || 0,
+    balance: 0, // Initial balance is always 0 until orders are added
     notes: notes || '',
     createdAt: admin.firestore.FieldValue.serverTimestamp(),
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -75,7 +75,7 @@ exports.createCustomer = catchAsync(async (req, res, next) => {
 
 // PUT /customers/:id
 exports.updateCustomer = catchAsync(async (req, res, next) => {
-  const { name, phone, measurements, item, pickupDate, fittingDate, balance, notes } = req.body;
+  const { name, phone, measurements, item, pickupDate, fittingDate, notes } = req.body;
   
   const updateData = {
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -87,7 +87,7 @@ exports.updateCustomer = catchAsync(async (req, res, next) => {
   if (item) updateData.item = item;
   if (pickupDate) updateData.pickupDate = toTimestamp(pickupDate);
   if (fittingDate) updateData.fittingDate = toTimestamp(fittingDate);
-  if (balance !== undefined) updateData.balance = balance;
+  // Balance is read-only, updated via orders
   if (notes) updateData.notes = notes;
 
   await db.collection(COLLECTION_NAME).doc(req.params.id).update(updateData);
