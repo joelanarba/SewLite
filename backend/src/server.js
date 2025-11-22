@@ -4,12 +4,15 @@ const dotenv = require('dotenv');
 const helmet = require('helmet');
 const http = require('http');
 const { Server } = require('socket.io');
-const customerRoutes = require('./routes/customerRoutes');
-const orderRoutes = require('./routes/orderRoutes');
+const apiRouter = require('./routes');
+const customerRoutes = require('./routes/v1/customerRoutes');
+const orderRoutes = require('./routes/v1/orderRoutes');
 const reminderCron = require('./cron/reminderCron');
 const globalErrorHandler = require('./middleware/errorMiddleware');
 const AppError = require('./utils/appError');
 const { sendSuccess } = require('./utils/responseHandler');
+const { versionMiddleware } = require('./middleware/versionMiddleware');
+const { deprecationWarningMiddleware } = require('./utils/apiDeprecation');
 
 // Load environment variables
 dotenv.config();
@@ -43,13 +46,24 @@ app.use(helmet()); // Security headers
 app.use(cors()); // Enable CORS for all routes
 app.use(express.json()); // Parse JSON bodies
 
-// Routes
-app.use('/customers', customerRoutes);
-app.use('/orders', orderRoutes);
+// Apply version middleware globally
+app.use(versionMiddleware);
+
+// Mount versioned API routes
+app.use('/api', apiRouter);
+
+// Legacy routes (for backward compatibility)
+// These will be deprecated in the future - add deprecation warnings
+app.use('/customers', deprecationWarningMiddleware, customerRoutes);
+app.use('/orders', deprecationWarningMiddleware, orderRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {
-  sendSuccess(res, { status: 'OK' }, 'Fashion Designer Backend is running');
+  sendSuccess(res, { 
+    status: 'OK',
+    version: 'v1',
+    apiEndpoint: '/api/v1'
+  }, 'Fashion Designer Backend is running');
 });
 
 // Handle unhandled routes
