@@ -2,6 +2,7 @@ const { db, admin } = require('../firebase');
 const { sendOrderStatusUpdate } = require('../services/notificationService');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const { sendSuccess } = require('../utils/responseHandler');
 
 const COLLECTION_NAME = 'orders';
 
@@ -34,7 +35,7 @@ exports.getOrdersByCustomer = catchAsync(async (req, res, next) => {
   // Sort in memory
   orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   
-  res.status(200).json(orders);
+  sendSuccess(res, orders);
 });
 
 // POST /orders
@@ -70,7 +71,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     io.emit('orderUpdated', { orderId: docRef.id, ...newOrder, id: docRef.id });
   }
 
-  res.status(201).json({ id: docRef.id, message: 'Order created successfully' });
+  sendSuccess(res, { id: docRef.id }, 'Order created successfully', 201);
 });
 
 // PUT /orders/:id
@@ -131,7 +132,7 @@ exports.updateOrder = catchAsync(async (req, res, next) => {
     io.emit('orderUpdated', updatedOrder);
   }
 
-  res.status(200).json({ message: 'Order updated successfully', order: updatedOrder });
+  sendSuccess(res, { order: updatedOrder }, 'Order updated successfully');
 });
 
 // POST /orders/track
@@ -162,6 +163,6 @@ exports.trackOrder = catchAsync(async (req, res, next) => {
         });
     });
 
-    res.status(200).json(orders);
+    sendSuccess(res, orders);
 });
 

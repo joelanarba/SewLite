@@ -9,6 +9,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const reminderCron = require('./cron/reminderCron');
 const globalErrorHandler = require('./middleware/errorMiddleware');
 const AppError = require('./utils/appError');
+const { sendSuccess } = require('./utils/responseHandler');
 
 // Load environment variables
 dotenv.config();
@@ -48,7 +49,7 @@ app.use('/orders', orderRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {
-  res.send({ status: 'OK', message: 'Fashion Designer Backend is running' });
+  sendSuccess(res, { status: 'OK' }, 'Fashion Designer Backend is running');
 });
 
 // Handle unhandled routes

@@ -1,6 +1,7 @@
 const { db, admin } = require('../firebase');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const { sendSuccess } = require('../utils/responseHandler');
 
 const COLLECTION_NAME = 'customers';
 
@@ -26,7 +27,7 @@ exports.getAllCustomers = catchAsync(async (req, res, next) => {
       updatedAt: data.updatedAt?.toDate().toISOString(),
     });
   });
-  res.status(200).json(customers);
+  sendSuccess(res, customers);
 });
 
 // GET /customers/:id
@@ -36,7 +37,8 @@ exports.getCustomerById = catchAsync(async (req, res, next) => {
     return next(new AppError('Customer not found', 404));
   }
   const data = doc.data();
-  res.status(200).json({
+
+  sendSuccess(res, {
     id: doc.id,
     ...data,
     pickupDate: data.pickupDate?.toDate().toISOString(),
@@ -68,7 +70,7 @@ exports.createCustomer = catchAsync(async (req, res, next) => {
   };
 
   const docRef = await db.collection(COLLECTION_NAME).add(newCustomer);
-  res.status(201).json({ id: docRef.id, message: 'Customer created successfully' });
+  sendSuccess(res, { id: docRef.id }, 'Customer created successfully', 201);
 });
 
 // PUT /customers/:id
@@ -89,12 +91,12 @@ exports.updateCustomer = catchAsync(async (req, res, next) => {
   if (notes) updateData.notes = notes;
 
   await db.collection(COLLECTION_NAME).doc(req.params.id).update(updateData);
-  res.status(200).json({ message: 'Customer updated successfully' });
+  sendSuccess(res, null, 'Customer updated successfully');
 });
 
 // DELETE /customers/:id
 exports.deleteCustomer = catchAsync(async (req, res, next) => {
   await db.collection(COLLECTION_NAME).doc(req.params.id).delete();
-  res.status(200).json({ message: 'Customer deleted successfully' });
+  sendSuccess(res, null, 'Customer deleted successfully');
 });
 
