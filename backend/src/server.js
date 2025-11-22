@@ -7,6 +7,8 @@ const { Server } = require('socket.io');
 const customerRoutes = require('./routes/customerRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const reminderCron = require('./cron/reminderCron');
+const globalErrorHandler = require('./middleware/errorMiddleware');
+const AppError = require('./utils/appError');
 
 // Load environment variables
 dotenv.config();
@@ -48,6 +50,14 @@ app.use('/orders', orderRoutes);
 app.get('/', (req, res) => {
   res.send({ status: 'OK', message: 'Fashion Designer Backend is running' });
 });
+
+// Handle unhandled routes
+app.all('*', (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
+// Global Error Handler
+app.use(globalErrorHandler);
 
 // Start Cron Job
 reminderCron.start();

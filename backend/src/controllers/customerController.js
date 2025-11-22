@@ -1,4 +1,6 @@
 const { db, admin } = require('../firebase');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
 
 const COLLECTION_NAME = 'customers';
 
@@ -9,38 +11,13 @@ const toTimestamp = (dateStr) => {
 };
 
 // GET /customers
-exports.getAllCustomers = async (req, res) => {
-  try {
-    const snapshot = await db.collection(COLLECTION_NAME).orderBy('createdAt', 'desc').get();
-    const customers = [];
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      // Convert Timestamps to ISO strings for frontend
-      customers.push({
-        id: doc.id,
-        ...data,
-        pickupDate: data.pickupDate?.toDate().toISOString(),
-        fittingDate: data.fittingDate?.toDate().toISOString(),
-        createdAt: data.createdAt?.toDate().toISOString(),
-        updatedAt: data.updatedAt?.toDate().toISOString(),
-      });
-    });
-    res.status(200).json(customers);
-  } catch (error) {
-    console.error('Error fetching customers:', error);
-    res.status(500).json({ error: 'Failed to fetch customers' });
-  }
-};
-
-// GET /customers/:id
-exports.getCustomerById = async (req, res) => {
-  try {
-    const doc = await db.collection(COLLECTION_NAME).doc(req.params.id).get();
-    if (!doc.exists) {
-      return res.status(404).json({ error: 'Customer not found' });
-    }
+exports.getAllCustomers = catchAsync(async (req, res, next) => {
+  const snapshot = await db.collection(COLLECTION_NAME).orderBy('createdAt', 'desc').get();
+  const customers = [];
+  snapshot.forEach(doc => {
     const data = doc.data();
-    res.status(200).json({
+    // Convert Timestamps to ISO strings for frontend
+    customers.push({
       id: doc.id,
       ...data,
       pickupDate: data.pickupDate?.toDate().toISOString(),
@@ -48,75 +25,76 @@ exports.getCustomerById = async (req, res) => {
       createdAt: data.createdAt?.toDate().toISOString(),
       updatedAt: data.updatedAt?.toDate().toISOString(),
     });
-  } catch (error) {
-    console.error('Error fetching customer:', error);
-    res.status(500).json({ error: 'Failed to fetch customer' });
+  });
+  res.status(200).json(customers);
+});
+
+// GET /customers/:id
+exports.getCustomerById = catchAsync(async (req, res, next) => {
+  const doc = await db.collection(COLLECTION_NAME).doc(req.params.id).get();
+  if (!doc.exists) {
+    return next(new AppError('Customer not found', 404));
   }
-};
+  const data = doc.data();
+  res.status(200).json({
+    id: doc.id,
+    ...data,
+    pickupDate: data.pickupDate?.toDate().toISOString(),
+    fittingDate: data.fittingDate?.toDate().toISOString(),
+    createdAt: data.createdAt?.toDate().toISOString(),
+    updatedAt: data.updatedAt?.toDate().toISOString(),
+  });
+});
 
 // POST /customers
-exports.createCustomer = async (req, res) => {
-  try {
-    const { name, phone, measurements, item, pickupDate, fittingDate, balance, notes } = req.body;
+exports.createCustomer = catchAsync(async (req, res, next) => {
+  const { name, phone, measurements, item, pickupDate, fittingDate, balance, notes } = req.body;
 
-    if (!name || !phone) {
-      return res.status(400).json({ error: 'Name and Phone are required' });
-    }
-
-    const newCustomer = {
-      name,
-      phone,
-      measurements: measurements || {},
-      item: item || '',
-      pickupDate: toTimestamp(pickupDate),
-      fittingDate: toTimestamp(fittingDate),
-      balance: balance || 0,
-      notes: notes || '',
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    };
-
-    const docRef = await db.collection(COLLECTION_NAME).add(newCustomer);
-    res.status(201).json({ id: docRef.id, message: 'Customer created successfully' });
-  } catch (error) {
-    console.error('Error creating customer:', error);
-    res.status(500).json({ error: 'Failed to create customer' });
+  if (!name || !phone) {
+    return next(new AppError('Name and Phone are required', 400));
   }
-};
+
+  const newCustomer = {
+    name,
+    phone,
+    measurements: measurements || {},
+    item: item || '',
+    pickupDate: toTimestamp(pickupDate),
+    fittingDate: toTimestamp(fittingDate),
+    balance: balance || 0,
+    notes: notes || '',
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  };
+
+  const docRef = await db.collection(COLLECTION_NAME).add(newCustomer);
+  res.status(201).json({ id: docRef.id, message: 'Customer created successfully' });
+});
 
 // PUT /customers/:id
-exports.updateCustomer = async (req, res) => {
-  try {
-    const { name, phone, measurements, item, pickupDate, fittingDate, balance, notes } = req.body;
-    
-    const updateData = {
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    };
+exports.updateCustomer = catchAsync(async (req, res, next) => {
+  const { name, phone, measurements, item, pickupDate, fittingDate, balance, notes } = req.body;
+  
+  const updateData = {
+    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  };
 
-    if (name) updateData.name = name;
-    if (phone) updateData.phone = phone;
-    if (measurements) updateData.measurements = measurements;
-    if (item) updateData.item = item;
-    if (pickupDate) updateData.pickupDate = toTimestamp(pickupDate);
-    if (fittingDate) updateData.fittingDate = toTimestamp(fittingDate);
-    if (balance !== undefined) updateData.balance = balance;
-    if (notes) updateData.notes = notes;
+  if (name) updateData.name = name;
+  if (phone) updateData.phone = phone;
+  if (measurements) updateData.measurements = measurements;
+  if (item) updateData.item = item;
+  if (pickupDate) updateData.pickupDate = toTimestamp(pickupDate);
+  if (fittingDate) updateData.fittingDate = toTimestamp(fittingDate);
+  if (balance !== undefined) updateData.balance = balance;
+  if (notes) updateData.notes = notes;
 
-    await db.collection(COLLECTION_NAME).doc(req.params.id).update(updateData);
-    res.status(200).json({ message: 'Customer updated successfully' });
-  } catch (error) {
-    console.error('Error updating customer:', error);
-    res.status(500).json({ error: 'Failed to update customer' });
-  }
-};
+  await db.collection(COLLECTION_NAME).doc(req.params.id).update(updateData);
+  res.status(200).json({ message: 'Customer updated successfully' });
+});
 
 // DELETE /customers/:id
-exports.deleteCustomer = async (req, res) => {
-  try {
-    await db.collection(COLLECTION_NAME).doc(req.params.id).delete();
-    res.status(200).json({ message: 'Customer deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting customer:', error);
-    res.status(500).json({ error: 'Failed to delete customer' });
-  }
-};
+exports.deleteCustomer = catchAsync(async (req, res, next) => {
+  await db.collection(COLLECTION_NAME).doc(req.params.id).delete();
+  res.status(200).json({ message: 'Customer deleted successfully' });
+});
+
