@@ -2,7 +2,10 @@ const express = require('express');
 const router = express.Router();
 const customerController = require('../controllers/customerController');
 const validate = require('../middleware/validate');
+const sanitizeMiddleware = require('../middleware/sanitizeMiddleware');
 const { createCustomer, updateCustomer } = require('../validations/customerValidation');
+
+router.use(sanitizeMiddleware);
 
 router.get('/', customerController.getAllCustomers);
 router.get('/:id', customerController.getCustomerById);

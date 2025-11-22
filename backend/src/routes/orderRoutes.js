@@ -2,7 +2,10 @@ const express = require('express');
 const router = express.Router();
 const orderController = require('../controllers/orderController');
 const validate = require('../middleware/validate');
+const sanitizeMiddleware = require('../middleware/sanitizeMiddleware');
 const { createOrder, updateOrder, trackOrder } = require('../validations/orderValidation');
+
+router.use(sanitizeMiddleware);
 
 router.get('/customer/:customerId', orderController.getOrdersByCustomer);
 router.post('/', validate(createOrder), orderController.createOrder);
