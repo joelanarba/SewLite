@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { 
   fetchCustomers, 
   createCustomer as apiCreateCustomer, 
@@ -47,9 +48,25 @@ export const DataProvider = ({ children }) => {
     try {
       const data = await fetchCustomers();
       setCustomers(data);
+      // Cache the data
+      await AsyncStorage.setItem('customers', JSON.stringify(data));
     } catch (err) {
       console.error('Error loading data:', err);
-      setError(err.message || 'Failed to load data');
+      
+      // Try to load from cache
+      try {
+        const cachedData = await AsyncStorage.getItem('customers');
+        if (cachedData) {
+          setCustomers(JSON.parse(cachedData));
+          // Optional: Set a specific error or warning that we are offline
+          // For now, we might just log it or set a transient error
+          console.log('Loaded data from cache');
+        } else {
+          setError(err.message || 'Failed to load data');
+        }
+      } catch (cacheErr) {
+        setError(err.message || 'Failed to load data');
+      }
     } finally {
       setLoading(false);
     }
