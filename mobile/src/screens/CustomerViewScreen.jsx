@@ -127,6 +127,16 @@ const CustomerViewScreen = () => {
     }
   };
 
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'Pending': return 'time-outline';
+      case 'In Progress': return 'construct-outline';
+      case 'Ready': return 'checkmark-circle-outline';
+      case 'Picked Up': return 'cube-outline';
+      default: return 'help-circle-outline';
+    }
+  };
+
   if (loading) return (
     <Screen className="justify-center items-center">
       <ActivityIndicator size="large" color="#3C4EB0" />
@@ -201,7 +211,8 @@ const CustomerViewScreen = () => {
                                 <Text className="text-xs text-text-secondary mt-1">#{order.id.slice(-6).toUpperCase()}</Text>
                             </View>
                             <TouchableOpacity onPress={() => handleUpdateStatus(order.id, order.status)}>
-                                <View className={`px-4 py-2 rounded-full ${getStatusBg(order.status)}`}>
+                                <View className={`px-4 py-2 rounded-full flex-row items-center gap-2 ${getStatusBg(order.status)}`}>
+                                    <Ionicons name={getStatusIcon(order.status)} size={14} color={getStatusColor(order.status).replace('text-', '')} />
                                     <Text className={`text-xs font-bold uppercase tracking-wider ${getStatusColor(order.status)}`}>
                                         {order.status.toUpperCase()}
                                     </Text>

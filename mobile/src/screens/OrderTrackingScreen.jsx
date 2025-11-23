@@ -81,6 +81,16 @@ const OrderTrackingScreen = () => {
     }
   };
 
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'Pending': return 'time-outline';
+      case 'In Progress': return 'construct-outline';
+      case 'Ready': return 'checkmark-circle-outline';
+      case 'Picked Up': return 'cube-outline';
+      default: return 'help-circle-outline';
+    }
+  };
+
   return (
     <Screen>
       <Header title="Track Order" showBack />
@@ -126,7 +136,8 @@ const OrderTrackingScreen = () => {
                   <Text className="text-xl font-bold text-primary">{order.item}</Text>
                   <Text className="text-xs text-text-secondary mt-1">Order #{order.id.slice(-6).toUpperCase()}</Text>
                 </View>
-                <View className={`px-4 py-2 rounded-full ${getStatusBg(order.status)}`}>
+                <View className={`px-4 py-2 rounded-full flex-row items-center gap-2 ${getStatusBg(order.status)}`}>
+                  <Ionicons name={getStatusIcon(order.status)} size={14} color={getStatusColor(order.status).replace('text-', '')} />
                   <Text className={`text-xs font-bold uppercase tracking-wider ${getStatusColor(order.status)}`}>
                     {order.status.toUpperCase()}
                   </Text>
