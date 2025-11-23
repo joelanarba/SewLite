@@ -9,6 +9,9 @@ import {
   updateOrder as apiUpdateOrder
 } from '../services/api';
 
+import { useAuth } from './AuthContext';
+import socketService from '../services/socket';
+
 const DataContext = createContext();
 
 export const useData = () => {
@@ -20,9 +23,23 @@ export const useData = () => {
 };
 
 export const DataProvider = ({ children }) => {
+  const { user } = useAuth();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Manage socket connection
+  useEffect(() => {
+    if (user) {
+      socketService.connect();
+    } else {
+      socketService.disconnect();
+    }
+
+    return () => {
+      socketService.disconnect();
+    };
+  }, [user]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -39,8 +56,10 @@ export const DataProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (user) {
+      loadData();
+    }
+  }, [loadData, user]);
 
   const refreshData = async () => {
     await loadData();
