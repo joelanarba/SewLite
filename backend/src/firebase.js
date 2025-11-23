@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
 const dotenv = require('dotenv');
+const logger = require('./utils/logger');
 
 dotenv.config();
 
@@ -54,7 +55,7 @@ function loadServiceAccount() {
   // Strategy 1: Try to load from local file (for local development)
   try {
     serviceAccount = require('../serviceAccountKey.json');
-    console.log('✓ Service account loaded from file: serviceAccountKey.json');
+    logger.info('Service account loaded from file', { source: 'serviceAccountKey.json' });
     
     // Validate structure
     const validation = validateServiceAccountStructure(serviceAccount);
@@ -68,13 +69,13 @@ function loadServiceAccount() {
       serviceAccount = null;
     }
   } catch (fileError) {
-    console.log('ℹ Service account file not found (this is OK for production deployments)');
+    logger.info('Service account file not found (OK for production deployments)');
     
     // Strategy 2: Try to load from environment variable (for production/CI/Docker)
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
       try {
         serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-        console.log('✓ Service account loaded from environment variable: FIREBASE_SERVICE_ACCOUNT');
+        logger.info('Service account loaded from environment variable', { source: 'FIREBASE_SERVICE_ACCOUNT' });
         
         // Validate structure
         const validation = validateServiceAccountStructure(serviceAccount);
@@ -118,6 +119,7 @@ function reportFirebaseError(errorType, errorDetails) {
   const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
   const isDocker = process.env.DOCKER_CONTAINER === 'true';
 
+  // Use console for error reporting to preserve formatting (this is initialization-level logging)
   console.error('\n' + '='.repeat(80));
   console.error('❌ FIREBASE INITIALIZATION FAILED');
   console.error('='.repeat(80));
@@ -200,6 +202,17 @@ function reportFirebaseError(errorType, errorDetails) {
   console.error('='.repeat(80));
   console.error('For more help, visit: https://firebase.google.com/docs/admin/setup');
   console.error('='.repeat(80) + '\n');
+  
+  // Log structured error for monitoring
+  logger.error('Firebase initialization failed', {
+    errorType,
+    ...errorDetails,
+    environment: {
+      nodeEnv: process.env.NODE_ENV,
+      isCI,
+      isDocker
+    }
+  });
 }
 
 // Initialize Firebase with robust error handling
@@ -219,9 +232,10 @@ if (!admin.apps.length) {
       db = admin.firestore();
       firebaseInitialized = true;
       
-      console.log('✓ Firebase Admin SDK initialized successfully');
-      console.log(`✓ Project ID: ${serviceAccount.project_id}`);
-      console.log(`✓ Client Email: ${serviceAccount.client_email}\n`);
+      logger.info('Firebase Admin SDK initialized successfully', {
+        projectId: serviceAccount.project_id,
+        clientEmail: serviceAccount.client_email
+      });
     } catch (initError) {
       reportFirebaseError(FIREBASE_ERROR_TYPES.INIT_FAILED, {
         message: initError.message,
@@ -230,11 +244,10 @@ if (!admin.apps.length) {
       
       // Exit in production to prevent running with degraded functionality
       if (process.env.NODE_ENV === 'production') {
-        console.error('🛑 Exiting process (production mode requires Firebase)');
+        logger.error('Exiting process - production mode requires Firebase');
         process.exit(1);
       } else {
-        console.warn('⚠️  Server will start in DEGRADED mode (development only)');
-        console.warn('⚠️  Firebase-dependent features will not work\n');
+        logger.warn('Server starting in DEGRADED mode - Firebase-dependent features will not work');
       }
     }
   } else {
@@ -242,17 +255,16 @@ if (!admin.apps.length) {
     
     // Exit in production, allow degraded mode in development
     if (process.env.NODE_ENV === 'production') {
-      console.error('🛑 Exiting process (production mode requires Firebase)');
+      logger.error('Exiting process - production mode requires Firebase');
       process.exit(1);
     } else {
-      console.warn('⚠️  Server will start in DEGRADED mode (development only)');
-      console.warn('⚠️  Firebase-dependent features will not work\n');
+      logger.warn('Server starting in DEGRADED mode - Firebase-dependent features will not work');
     }
   }
 } else {
   db = admin.firestore();
   firebaseInitialized = true;
-  console.log('✓ Firebase Admin SDK already initialized');
+  logger.info('Firebase Admin SDK already initialized');
 }
 
 // Helper to check if Firebase is available

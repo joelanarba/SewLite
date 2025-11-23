@@ -1,5 +1,6 @@
 const twilio = require('twilio');
 const dotenv = require('dotenv');
+const logger = require('../utils/logger');
 const { ORDER_STATUS } = require('../config/constants');
 
 dotenv.config();
@@ -13,12 +14,12 @@ let client;
 if (accountSid && authToken && fromNumber) {
   client = twilio(accountSid, authToken);
 } else {
-  console.warn('Twilio credentials missing. SMS notifications will be logged to console only.');
+  logger.warn('Twilio credentials missing. SMS notifications will be logged to console only.');
 }
 
 exports.sendSMS = async (to, body) => {
   if (!client) {
-    console.log(`[MOCK SMS] To: ${to}, Body: ${body}`);
+    logger.debug('Mock SMS notification (Twilio not configured)', { to, body });
     return;
   }
 
@@ -28,9 +29,9 @@ exports.sendSMS = async (to, body) => {
       from: fromNumber,
       to,
     });
-    console.log(`SMS sent to ${to}`);
+    logger.info('Notification SMS sent successfully', { to });
   } catch (error) {
-    console.error('Error sending SMS:', error);
+    logger.error('Failed to send notification SMS', { to, error: error.message });
   }
 };
 

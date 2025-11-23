@@ -1,5 +1,6 @@
 const twilio = require('twilio');
 const dotenv = require('dotenv');
+const logger = require('../utils/logger');
 
 dotenv.config();
 
@@ -12,12 +13,12 @@ let client;
 if (accountSid && authToken) {
   client = twilio(accountSid, authToken);
 } else {
-  console.warn('Twilio credentials missing. Message service will not send real messages.');
+  logger.warn('Twilio credentials missing. Message service will not send real messages.');
 }
 
 exports.sendSMS = async (to, body) => {
   if (!client) {
-    console.log(`[MOCK SMS] To: ${to}, Body: ${body}`);
+    logger.debug('Mock SMS (Twilio not configured)', { to, body });
     return { sid: 'mock-sid', status: 'sent' };
   }
 
@@ -27,10 +28,10 @@ exports.sendSMS = async (to, body) => {
       from: fromNumber,
       to: to
     });
-    console.log(`SMS sent: ${message.sid}`);
+    logger.info('SMS sent successfully', { to, sid: message.sid, status: message.status });
     return message;
   } catch (error) {
-    console.error('Error sending SMS:', error);
+    logger.error('Failed to send SMS', { to, error: error.message });
     throw error;
   }
 };
@@ -38,7 +39,7 @@ exports.sendSMS = async (to, body) => {
 // For WhatsApp, Twilio requires a specific format 'whatsapp:+1234567890'
 exports.sendWhatsApp = async (to, body) => {
     if (!client) {
-      console.log(`[MOCK WHATSAPP] To: ${to}, Body: ${body}`);
+      logger.debug('Mock WhatsApp (Twilio not configured)', { to, body });
       return { sid: 'mock-sid', status: 'sent' };
     }
   
@@ -48,10 +49,10 @@ exports.sendWhatsApp = async (to, body) => {
         from: `whatsapp:${fromNumber}`, // Ensure env var has the whatsapp prefix if needed, or add it here
         to: `whatsapp:${to}`
       });
-      console.log(`WhatsApp sent: ${message.sid}`);
+      logger.info('WhatsApp sent successfully', { to, sid: message.sid, status: message.status });
       return message;
     } catch (error) {
-      console.error('Error sending WhatsApp:', error);
+      logger.error('Failed to send WhatsApp message', { to, error: error.message });
       throw error;
     }
   };

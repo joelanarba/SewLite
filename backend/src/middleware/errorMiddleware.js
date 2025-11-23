@@ -1,4 +1,5 @@
 const AppError = require('../utils/appError');
+const logger = require('../utils/logger');
 
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
@@ -22,7 +23,11 @@ const sendErrorProd = (err, res) => {
   // Programming or other unknown error: don't leak details
   } else {
     // 1) Log error
-    console.error('ERROR 💥', err);
+    logger.error('Unexpected application error', {
+      message: err.message,
+      stack: err.stack,
+      statusCode: err.statusCode
+    });
 
     // 2) Send generic message
     res.status(500).json({

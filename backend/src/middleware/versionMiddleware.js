@@ -5,6 +5,7 @@
  */
 
 const AppError = require('../utils/appError');
+const logger = require('../utils/logger');
 
 /**
  * Supported API versions
@@ -84,12 +85,11 @@ function validateVersionMiddleware(req, res, next) {
  */
 function logVersionUsage(req, res, next) {
   if (req.apiVersion) {
-    console.log('[API Version]', {
+    logger.debug('API request received', {
       version: req.apiVersion.version,
       isLegacy: req.apiVersion.isLegacy,
-      path: req.originalUrl,
       method: req.method,
-      timestamp: new Date().toISOString()
+      path: req.originalUrl
     });
   }
   

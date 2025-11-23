@@ -1,5 +1,6 @@
 const cron = require('node-cron');
 const { db, admin } = require('../firebase');
+const logger = require('../utils/logger');
 const messageService = require('../services/messageService');
 const { COLLECTIONS, NOTIFICATION_TYPES } = require('../config/constants');
 
@@ -10,7 +11,7 @@ const start = () => {
   // we might need to adjust the cron expression or use a library that supports timezone in cron.
   // For now, we keep the schedule but ensure the "tomorrow" calculation is correct relative to the configured timezone.
   cron.schedule('0 6 * * *', async () => {
-    console.log('Running daily reminder job...');
+    logger.info('Daily reminder job started');
     
     const TIMEZONE = process.env.TIMEZONE || 'UTC';
     const { toZonedTime, fromZonedTime } = require('date-fns-tz');
@@ -29,8 +30,14 @@ const start = () => {
       const startOfTomorrow = fromZonedTime(startOfTomorrowZoned, TIMEZONE);
       const endOfTomorrow = fromZonedTime(endOfTomorrowZoned, TIMEZONE);
 
-      console.log(`Checking for reminders for date: ${startOfTomorrowZoned.toDateString()} (${TIMEZONE})`);
-      console.log(`Query range (UTC): ${startOfTomorrow.toISOString()} - ${endOfTomorrow.toISOString()}`);
+      logger.debug('Querying for reminders', {
+        timezone: TIMEZONE,
+        targetDate: startOfTomorrowZoned.toDateString(),
+        queryRange: {
+          start: startOfTomorrow.toISOString(),
+          end: endOfTomorrow.toISOString()
+        }
+      });
 
       const customersRef = db.collection(COLLECTIONS.CUSTOMERS);
       
@@ -72,17 +79,19 @@ const start = () => {
             status: 'sent'
           });
           
-          console.log(`Reminder sent to ${customer.name} for ${type}`);
+          logger.info('Reminder sent successfully', { customerId: doc.id, customerName: customer.name, type });
         } catch (err) {
-          console.error(`Failed to send reminder to ${customer.name}:`, err);
+          logger.error('Failed to send reminder', { customerId: doc.id, customerName: customer.name, type, error: err.message });
         }
       };
 
       pickupQuery.forEach(doc => processReminder(doc, 'pickup'));
       fittingQuery.forEach(doc => processReminder(doc, 'fitting'));
 
+      logger.info('Daily reminder job completed', { pickupCount: pickupQuery.size, fittingCount: fittingQuery.size });
+
     } catch (error) {
-      console.error('Error in reminder cron job:', error);
+      logger.error('Error in reminder cron job', { error: error.message, stack: error.stack });
     }
   });
 };

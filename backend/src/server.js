@@ -4,6 +4,7 @@ const dotenv = require('dotenv');
 const helmet = require('helmet');
 const http = require('http');
 const { Server } = require('socket.io');
+const logger = require('./utils/logger');
 const apiRouter = require('./routes');
 const customerRoutes = require('./routes/v1/customerRoutes');
 const orderRoutes = require('./routes/v1/orderRoutes');
@@ -37,9 +38,9 @@ const io = new Server(server, {
 app.set('io', io);
 
 io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
+  logger.debug('Socket.io client connected', { socketId: socket.id });
   socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+    logger.debug('Socket.io client disconnected', { socketId: socket.id });
   });
 });
 
@@ -90,10 +91,14 @@ app.use(globalErrorHandler);
 
 // Start Cron Job
 reminderCron.start();
-console.log('Cron job initialized');
+logger.info('Reminder cron job initialized');
 
 // Start Server
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Accessible locally at http://localhost:${PORT}`);
+  logger.info('Server started successfully', { 
+    port: PORT, 
+    environment: process.env.NODE_ENV || 'development',
+    localUrl: `http://localhost:${PORT}`,
+    externalUrl: `http://0.0.0.0:${PORT}`
+  });
 });

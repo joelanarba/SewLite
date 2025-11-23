@@ -1,5 +1,6 @@
 const { db } = require('../firebase');
 const { COLLECTIONS } = require('../config/constants');
+const logger = require('./logger');
 
 /**
  * Recalculates and updates the total balance for a customer based on their orders.
@@ -25,10 +26,10 @@ const updateCustomerBalance = async (customerId) => {
       balance: totalBalance
     });
 
-    console.log(`Updated balance for customer ${customerId} to ${totalBalance}`);
+    logger.info('Customer balance updated', { customerId, totalBalance, orderCount: ordersSnapshot.size });
     return totalBalance;
   } catch (error) {
-    console.error(`Failed to update balance for customer ${customerId}:`, error);
+    logger.error('Failed to update customer balance', { customerId, error: error.message });
     // We don't throw here to prevent blocking the main order operation, 
     // but in a production system we might want a retry mechanism or alert.
     return 0;
