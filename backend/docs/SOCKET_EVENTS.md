@@ -22,7 +22,12 @@ const io = new Server(server, {
 ```javascript
 import { io } from 'socket.io-client';
 
-const socket = io('http://localhost:3000');
+// IMPORTANT: Pass customerId to receive targeted events
+const socket = io('http://localhost:3000', {
+  query: {
+    customerId: 'customer123' // Your authenticated customer ID
+  }
+});
 
 socket.on('connect', () => {
   console.log('Connected to server:', socket.id);
@@ -34,6 +39,111 @@ socket.on('disconnect', () => {
 ```
 
 ---
+
+## Room-Based Targeting Strategy
+
+**The server uses Socket.io rooms to prevent unnecessary broadcasting.**
+
+### Why Rooms?
+
+Without rooms, every event is broadcast to ALL connected clients:
+- 1000 clients connected = 1000 messages sent per event
+- Wastes bandwidth
+- Poor scalability (limited to ~100 concurrent users)
+
+With rooms, events only go to relevant clients:
+- 1000 clients connected = 1 message sent (to the customer who owns the order)
+- **99% bandwidth reduction**
+- Scales to thousands of concurrent users
+
+### Room Naming Conventions
+
+| Room Name Pattern | Description |
+|-------------------|-------------|
+| `customer:{customerId}` | Customer-specific room for order updates |
+| `order:{orderId}` | Order-specific room (future) |
+| `designer` | Designer dashboard receiving all order updates (future) |
+
+### How It Works
+
+1. **Client connects with customerId:**
+   ```javascript
+   const socket = io('http://localhost:3000', {
+     query: { customerId: 'customer123' }
+   });
+   ```
+
+2. **Server automatically joins client to room:**
+   ```javascript
+   // Server-side (automatic)
+   socket.join('customer:customer123');
+   ```
+
+3. **Events are targeted to specific rooms:**
+   ```javascript
+   // Server-side
+   io.to('customer:customer123').emit('orderUpdated', order);
+   ```
+
+4. **Only relevant clients receive events:**
+   - Customer A's app only gets updates for their orders
+   - Customer B's app doesn't receive Customer A's events
+   - Dramatically reduced network traffic
+
+### Client Integration with Rooms
+
+**React Native Example:**
+```javascript
+import { io } from 'socket.io-client';
+import { useEffect } from 'react';
+
+function useOrderUpdates(customerId, onOrderUpdate) {
+  useEffect(() => {
+    // Connect with customerId to join customer-specific room
+    const socket = io('http://localhost:3000', {
+      query: { customerId }
+    });
+    
+    socket.on('orderUpdated', (order) => {
+      // Only receives updates for this customer's orders
+      onOrderUpdate(order);
+    });
+    
+    return () => {
+      socket.disconnect();
+    };
+  }, [customerId, onOrderUpdate]);
+}
+
+// Usage
+function OrdersScreen({ currentUser }) {
+  const [orders, setOrders] = useState([]);
+  
+  useOrderUpdates(currentUser.id, (updatedOrder) => {
+    // Update order in list
+    setOrders(prev => {
+      const index = prev.findIndex(o => o.id === updatedOrder.id);
+      if (index >= 0) {
+        const newOrders = [...prev];
+        newOrders[index] = updatedOrder;
+        return newOrders;
+      }
+      return [updatedOrder, ...prev];
+    });
+  });
+  
+  return (
+    <View>
+      {orders.map(order => <OrderCard key={order.id} order={order} />)}
+    </View>
+  );
+}
+```
+
+> [!IMPORTANT]
+> **Authentication Note:** Always validate that the `customerId` in the query parameter matches the authenticated user to prevent clients from joining other customers' rooms.
+
+
 
 ## Events
 

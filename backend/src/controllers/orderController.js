@@ -8,6 +8,7 @@ const { toTimestamp } = require('../utils/dateUtils');
 const { COLLECTIONS, ORDER_STATUS } = require('../config/constants');
 const { SOCKET_EVENT_NAMES } = require('../config/socketEvents');
 const { emitTypedEvent } = require('../utils/socketValidation');
+const { getCustomerRoom } = require('../utils/socketRooms');
 
 const COLLECTION_NAME = COLLECTIONS.ORDERS;
 
@@ -87,17 +88,19 @@ exports.createOrder = catchAsync(async (req, res, next) => {
   });
   
   /**
-   * Emit socket event to notify clients of new order
+   * Emit socket event to notify customer of new order
+   * Uses customer-specific room for targeted emission
    * @event orderUpdated
    * @see SOCKET_EVENTS.md for payload schema
    */
   const io = req.app.get('io');
   if (io) {
+    const customerRoom = getCustomerRoom(customerId);
     emitTypedEvent(io, SOCKET_EVENT_NAMES.ORDER_UPDATED, { 
       orderId: result.orderId, 
       ...result.newOrderData, 
       id: result.orderId 
-    });
+    }, { room: customerRoom });
   }
 
   // Note: updateCustomerBalance is no longer needed as we updated it atomically
@@ -163,13 +166,15 @@ exports.updateOrder = catchAsync(async (req, res, next) => {
   }
 
   /**
-   * Emit socket event to notify clients of updated order
+   * Emit socket event to notify customer of updated order
+   * Uses customer-specific room for targeted emission
    * @event orderUpdated
    * @see SOCKET_EVENTS.md for payload schema
    */
   const io = req.app.get('io');
   if (io) {
-    emitTypedEvent(io, SOCKET_EVENT_NAMES.ORDER_UPDATED, updatedOrder);
+    const customerRoom = getCustomerRoom(currentOrder.customerId);
+    emitTypedEvent(io, SOCKET_EVENT_NAMES.ORDER_UPDATED, updatedOrder, { room: customerRoom });
   }
 
   // Update customer balance

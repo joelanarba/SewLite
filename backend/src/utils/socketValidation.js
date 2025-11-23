@@ -59,6 +59,7 @@ function validateSocketPayload(eventName, payload) {
  * @param {Object} options - Options for emission
  * @param {boolean} options.validate - Whether to validate payload (default: true in development)
  * @param {boolean} options.log - Whether to log the emission (default: true in development)
+ * @param {string} options.room - Optional room name to emit to (instead of broadcast)
  */
 function emitTypedEvent(io, eventName, payload, options = {}) {
   const isDevelopment = process.env.NODE_ENV !== 'production';
@@ -85,11 +86,19 @@ function emitTypedEvent(io, eventName, payload, options = {}) {
   if (shouldLog) {
     logger.debug('Emitting socket event', {
       eventName,
-      payloadSize: JSON.stringify(payload).length
+      payloadSize: JSON.stringify(payload).length,
+      room: options.room || 'broadcast',
+      targeted: !!options.room
     });
   }
   
-  io.emit(eventName, payload);
+  // Emit to specific room or broadcast to all
+  if (options.room) {
+    io.to(options.room).emit(eventName, payload);
+  } else {
+    logger.warn('Socket event emitted to ALL clients (no room specified)', { eventName });
+    io.emit(eventName, payload);
+  }
 }
 
 module.exports = {

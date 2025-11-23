@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const http = require('http');
 const { Server } = require('socket.io');
 const logger = require('./utils/logger');
+const { joinCustomerRoom } = require('./utils/socketRooms');
 const apiRouter = require('./routes');
 const customerRoutes = require('./routes/v1/customerRoutes');
 const orderRoutes = require('./routes/v1/orderRoutes');
@@ -37,8 +38,31 @@ const io = new Server(server, {
 // Make io available in routes
 app.set('io', io);
 
+/**
+ * Socket.io connection handler with room support
+ * Clients can join customer-specific rooms by passing customerId as query parameter
+ */
 io.on('connection', (socket) => {
   logger.debug('Socket.io client connected', { socketId: socket.id });
+  
+  // Auto-join customer room if customerId provided
+  const customerId = socket.handshake.query.customerId;
+  if (customerId) {
+    try {
+      joinCustomerRoom(socket, customerId);
+    } catch (error) {
+      logger.error('Failed to join customer room', { 
+        socketId: socket.id, 
+        customerId, 
+        error: error.message 
+      });
+    }
+  } else {
+    logger.warn('Socket connected without customerId - will receive no targeted events', { 
+      socketId: socket.id 
+    });
+  }
+  
   socket.on('disconnect', () => {
     logger.debug('Socket.io client disconnected', { socketId: socket.id });
   });
