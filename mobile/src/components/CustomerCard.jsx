@@ -57,4 +57,4 @@ const CustomerCard = ({ customer }) => {
   );
 };
 
-export default CustomerCard;
+export default React.memo(CustomerCard);

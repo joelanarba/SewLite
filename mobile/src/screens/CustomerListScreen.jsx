@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useData } from '../context/DataContext';
@@ -16,6 +16,10 @@ const CustomerListScreen = () => {
     c.phone.includes(search)
   );
 
+  const renderItem = useCallback(({ item }) => (
+    <CustomerCard customer={item} />
+  ), []);
+
   return (
     <Screen>
       <Header title="Clientele" />
@@ -31,7 +35,7 @@ const CustomerListScreen = () => {
       <FlatList
         data={filteredCustomers}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => <CustomerCard customer={item} />}
+        renderItem={renderItem}
         ListEmptyComponent={
           <View className="items-center justify-center mt-20">
             <View className="bg-secondary/30 rounded-full p-8 mb-4">
