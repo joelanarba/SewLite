@@ -14,6 +14,7 @@ const { sendSuccess } = require('./utils/responseHandler');
 const { versionMiddleware } = require('./middleware/versionMiddleware');
 const { protect } = require('./middleware/authMiddleware');
 const { deprecationWarningMiddleware } = require('./utils/apiDeprecation');
+const { globalRateLimiter, smsRateLimiter } = require('./middleware/rateLimitMiddleware');
 
 // Load environment variables
 dotenv.config();
@@ -49,6 +50,11 @@ app.use(express.json()); // Parse JSON bodies
 
 // Apply version middleware globally
 app.use(versionMiddleware);
+
+// Apply global rate limiting
+app.use('/api', globalRateLimiter);
+app.use('/customers', globalRateLimiter);
+app.use('/orders', globalRateLimiter);
 
 // Apply authentication middleware globally
 // Note: Health check route is excluded from auth in many cases, but for simplicity as per plan, we apply it globally first.
