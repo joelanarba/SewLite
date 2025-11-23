@@ -4,14 +4,11 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const { sendSuccess } = require('../utils/responseHandler');
 const { updateCustomerBalance } = require('../utils/balanceCalculator');
+const { toTimestamp } = require('../utils/dateUtils');
 
 const COLLECTION_NAME = 'orders';
 
-// Helper to format dates
-const toTimestamp = (dateStr) => {
-  if (!dateStr) return null;
-  return admin.firestore.Timestamp.fromDate(new Date(dateStr));
-};
+
 
 // GET /orders/customer/:customerId
 exports.getOrdersByCustomer = catchAsync(async (req, res, next) => {

@@ -2,14 +2,11 @@ const { db, admin } = require('../firebase');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const { sendSuccess } = require('../utils/responseHandler');
+const { toTimestamp } = require('../utils/dateUtils');
 
 const COLLECTION_NAME = 'customers';
 
-// Helper to format dates
-const toTimestamp = (dateStr) => {
-  if (!dateStr) return null;
-  return admin.firestore.Timestamp.fromDate(new Date(dateStr));
-};
+
 
 // GET /customers
 exports.getAllCustomers = catchAsync(async (req, res, next) => {
