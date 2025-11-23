@@ -41,7 +41,7 @@ exports.getOrdersByCustomer = catchAsync(async (req, res, next) => {
 
 // POST /orders
 exports.createOrder = catchAsync(async (req, res, next) => {
-  const { customerId, customerName, customerPhone, item, measurements, price, deposit, pickupDate, fittingDate, notes } = req.body;
+  const { customerId, item, measurements, price, deposit, pickupDate, fittingDate, notes } = req.body;
 
   if (!customerId || !item) {
     return next(new AppError('Customer ID and Item are required', 400));
@@ -49,8 +49,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
 
   const newOrder = {
     customerId,
-    customerName, // Denormalized for easier display
-    customerPhone, // Denormalized for easier lookup
+    // customerName and customerPhone are removed for normalization
     item,
     measurements: measurements || {},
     price: parseFloat(price) || 0,
@@ -127,7 +126,12 @@ exports.updateOrder = catchAsync(async (req, res, next) => {
 
   // Notify Customer if status changed
   if (status && status !== currentOrder.status) {
-    await sendOrderStatusUpdate(currentOrder.customerPhone, currentOrder.customerName, currentOrder.item, status);
+    // Fetch customer details for notification since they are no longer in the order
+    const customerDoc = await db.collection('customers').doc(currentOrder.customerId).get();
+    if (customerDoc.exists) {
+        const customerData = customerDoc.data();
+        await sendOrderStatusUpdate(customerData.phone, customerData.name, currentOrder.item, status);
+    }
   }
 
   // Emit socket event
@@ -149,17 +153,28 @@ exports.trackOrder = catchAsync(async (req, res, next) => {
         return next(new AppError('Phone number is required', 400));
     }
 
-    // Normalize phone - simple check for now, ideally use a library or strict format
-    // Assuming exact match for MVP
+    // 1. Find customer by phone
+    const customerSnapshot = await db.collection('customers')
+        .where('phone', '==', phone)
+        .limit(1)
+        .get();
+
+    if (customerSnapshot.empty) {
+        // No customer found with this phone, return empty list or specific message
+        // Returning empty list to avoid leaking customer existence? Or just empty list is fine.
+        return sendSuccess(res, []);
+    }
+
+    const customerId = customerSnapshot.docs[0].id;
+
+    // 2. Find orders by customerId
     const snapshot = await db.collection(COLLECTION_NAME)
-        .where('customerPhone', '==', phone)
-        .orderBy('createdAt', 'desc')
+        .where('customerId', '==', customerId)
         .get();
 
     const orders = [];
     snapshot.forEach(doc => {
         const data = doc.data();
-        // Only show active orders or recent ones? For now show all.
         orders.push({
             id: doc.id,
             ...data,
@@ -169,6 +184,9 @@ exports.trackOrder = catchAsync(async (req, res, next) => {
             updatedAt: data.updatedAt?.toDate().toISOString(),
         });
     });
+
+    // Sort in memory to avoid index requirement
+    orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     sendSuccess(res, orders);
 });
