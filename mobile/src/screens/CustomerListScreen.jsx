@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TextInput } from 'react-native';
+import { View, Text, FlatList } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { fetchCustomers } from '../services/api';
 import CustomerCard from '../components/CustomerCard';
 import Screen from '../components/Screen';
 import Header from '../components/Header';
+import { SearchInput } from '../components/presets/Inputs';
 
 const CustomerListScreen = () => {
   const [customers, setCustomers] = useState([]);
@@ -37,16 +38,11 @@ const CustomerListScreen = () => {
       <Header title="Clientele" />
       
       <View className="mb-6">
-        <View className="bg-white border-2 border-border rounded-2xl px-5 py-4 shadow-md flex-row items-center">
-          <Ionicons name="search" size={22} color="#3C4EB0" />
-          <TextInput
-            className="flex-1 ml-3 text-text-primary text-base font-medium"
-            placeholder="Search by name or phone..."
-            placeholderTextColor="#999999"
-            value={search}
-            onChangeText={setSearch}
-          />
-        </View>
+        <SearchInput
+          placeholder="Search by name or phone..."
+          value={search}
+          onChangeText={setSearch}
+        />
       </View>
       
       <FlatList

@@ -2,9 +2,9 @@ import React from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
-import Input from './Input';
-import Button from './Button';
-import Card from './Card';
+import { TextInput, PhoneInput, NumberInput, TextArea } from './presets/Inputs';
+import { PrimaryButton } from './presets/Buttons';
+import { StandardCard } from './presets/Cards';
 import DatePickerInput from './DatePickerInput';
 
 const CustomerSchema = Yup.object().shape({
@@ -31,32 +31,30 @@ const CustomerForm = ({ initialValues, onSubmit, submitLabel = "Save" }) => {
     >
       {({ handleChange, handleBlur, handleSubmit, values, errors, touched }) => (
         <ScrollView showsVerticalScrollIndicator={false}>
-          <Card className="mb-6">
+          <StandardCard className="mb-6">
             <Text className="text-xl font-bold text-primary mb-5 uppercase tracking-tight">Client Details</Text>
-            <Input
+            <TextInput
               label="Name *"
               value={values.name}
               onChangeText={handleChange('name')}
               placeholder="John Doe"
               error={touched.name && errors.name}
             />
-            <Input
+            <PhoneInput
               label="Phone *"
               value={values.phone}
               onChangeText={handleChange('phone')}
-              placeholder="+1234567890"
-              keyboardType="phone-pad"
               error={touched.phone && errors.phone}
             />
-            <Input
+            <TextInput
               label="Item Description"
               value={values.item}
               onChangeText={handleChange('item')}
               placeholder="Blue Suit"
             />
-          </Card>
+          </StandardCard>
 
-          <Card className="mb-6">
+          <StandardCard className="mb-6">
             <Text className="text-xl font-bold text-primary mb-5 uppercase tracking-tight">Schedule</Text>
             <View className="flex-row justify-between">
               <View className="w-[48%]">
@@ -78,45 +76,40 @@ const CustomerForm = ({ initialValues, onSubmit, submitLabel = "Save" }) => {
                 />
               </View>
             </View>
-          </Card>
+          </StandardCard>
 
-          <Card className="mb-6">
+          <StandardCard className="mb-6">
             <Text className="text-xl font-bold text-primary mb-5 uppercase tracking-tight">Measurements</Text>
             <View className="flex-row flex-wrap justify-between">
                {['chest', 'waist', 'hips', 'length'].map((m) => (
                  <View key={m} className="w-[48%]">
-                   <Input
+                   <NumberInput
                      label={m}
                      value={values[m]}
                      onChangeText={handleChange(m)}
-                     placeholder="0"
-                     keyboardType="numeric"
                    />
                  </View>
                ))}
             </View>
-          </Card>
+          </StandardCard>
 
-          <Card className="mb-8">
+          <StandardCard className="mb-8">
             <Text className="text-xl font-bold text-primary mb-5 uppercase tracking-tight">Additional Info</Text>
-            <Input
+            <NumberInput
               label="Balance Due"
               value={values.balance}
               onChangeText={handleChange('balance')}
               placeholder="0.00"
-              keyboardType="numeric"
             />
-            <Input
+            <TextArea
               label="Notes"
               value={values.notes}
               onChangeText={handleChange('notes')}
               placeholder="Additional details..."
-              multiline
-              numberOfLines={3}
             />
-          </Card>
+          </StandardCard>
 
-          <Button 
+          <PrimaryButton 
             title={submitLabel} 
             onPress={handleSubmit}
             className="mb-10"

@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, Alert, ActivityIndicator, Modal, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, Alert, ActivityIndicator, Modal, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { fetchCustomer, deleteCustomer, fetchOrders, createOrder, updateOrder } from '../services/api';
 import { formatDate } from '../utils/date';
 import Screen from '../components/Screen';
 import Header from '../components/Header';
-import Card from '../components/Card';
-import Button from '../components/Button';
+import { StandardCard, BorderedCard, GhostCard } from '../components/presets/Cards';
+import { PrimaryButton, GhostButton, OutlineButton } from '../components/presets/Buttons';
+import { TextInput, NumberInput, TextArea } from '../components/presets/Inputs';
 import DatePickerInput from '../components/DatePickerInput';
 
 const CustomerViewScreen = () => {
@@ -22,8 +23,8 @@ const CustomerViewScreen = () => {
     item: '',
     price: '',
     deposit: '',
-    pickupDate: new Date(),
-    fittingDate: new Date(),
+    pickupDate: new Date().toISOString().split('T')[0],
+    fittingDate: new Date().toISOString().split('T')[0],
     notes: ''
   });
   const [creating, setCreating] = useState(false);
@@ -65,16 +66,17 @@ const CustomerViewScreen = () => {
         customerName: customer.name,
         customerPhone: customer.phone,
         ...newOrder,
-        pickupDate: newOrder.pickupDate.toISOString(),
-        fittingDate: newOrder.fittingDate.toISOString(),
+        // Dates are already strings YYYY-MM-DD from DatePickerInput or init
+        pickupDate: newOrder.pickupDate, 
+        fittingDate: newOrder.fittingDate,
       });
       setShowCreateModal(false);
       setNewOrder({
         item: '',
         price: '',
         deposit: '',
-        pickupDate: new Date(),
-        fittingDate: new Date(),
+        pickupDate: new Date().toISOString().split('T')[0],
+        fittingDate: new Date().toISOString().split('T')[0],
         notes: ''
       });
       loadData(); // Reload to see new order
@@ -156,7 +158,7 @@ const CustomerViewScreen = () => {
       />
       
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Card className="mb-6 border-t-[6px] border-t-accent">
+        <BorderedCard className="mb-6 border-t-[6px] border-t-accent">
           <View className="items-center py-5">
             <View className="w-24 h-24 bg-primary/10 rounded-full items-center justify-center mb-4 border-2 border-accent">
               <Text className="text-4xl font-bold text-primary">
@@ -177,11 +179,11 @@ const CustomerViewScreen = () => {
                </View>
             </View>
           </View>
-        </Card>
+        </BorderedCard>
 
         <View className="flex-row justify-between items-center mb-5">
             <Text className="text-2xl font-bold text-primary uppercase tracking-tight">Orders</Text>
-            <Button 
+            <OutlineButton 
                 title="New Order" 
                 onPress={() => setShowCreateModal(true)}
                 className="px-6"
@@ -190,7 +192,7 @@ const CustomerViewScreen = () => {
         </View>
 
         {orders.map(order => (
-            <Card key={order.id} className="mb-4">
+            <StandardCard key={order.id} className="mb-4">
                 <View className="flex-row justify-between items-start mb-3">
                     <View>
                         <Text className="text-xl font-bold text-primary">{order.item}</Text>
@@ -208,17 +210,17 @@ const CustomerViewScreen = () => {
                     <Text className="text-text-secondary font-medium">Pickup: <Text className="text-primary font-semibold">{formatDate(order.pickupDate)}</Text></Text>
                     <Text className="font-bold text-red-500">Balance: ${order.balance}</Text>
                 </View>
-            </Card>
+            </StandardCard>
         ))}
 
         {orders.length === 0 && (
-            <Card className="bg-background/50">
+            <GhostCard>
                 <Text className="text-text-secondary italic text-center py-6">No active orders.</Text>
-            </Card>
+            </GhostCard>
         )}
 
         <Text className="text-2xl font-bold text-primary uppercase tracking-tight mb-4 mt-6">Measurements</Text>
-        <Card className="mb-8">
+        <StandardCard className="mb-8">
           <View className="flex-row flex-wrap">
             {Object.entries(customer.measurements || {}).map(([key, val]) => (
               <View key={key} className="w-[50%] mb-4 pr-2">
@@ -230,11 +232,10 @@ const CustomerViewScreen = () => {
                <Text className="text-text-secondary italic">No measurements recorded.</Text>
             )}
           </View>
-        </Card>
+        </StandardCard>
 
-        <Button 
+        <GhostButton 
           title="Delete Client" 
-          variant="ghost" 
           onPress={handleDelete}
           textClassName="text-red-500"
           className="mb-10"
@@ -256,9 +257,8 @@ const CustomerViewScreen = () => {
                 </View>
                 
                 <ScrollView showsVerticalScrollIndicator={false}>
-                    <Text className="label mb-2">Item Name</Text>
                     <TextInput
-                        className="input mb-4"
+                        label="Item Name"
                         placeholder="e.g. 3-Piece Suit"
                         value={newOrder.item}
                         onChangeText={(text) => setNewOrder({...newOrder, item: text})}
@@ -266,51 +266,47 @@ const CustomerViewScreen = () => {
 
                     <View className="flex-row justify-between mb-4">
                         <View className="w-[48%]">
-                            <Text className="label mb-2">Price ($)</Text>
-                            <TextInput
-                                className="input"
+                            <NumberInput
+                                label="Price ($)"
                                 placeholder="0.00"
-                                keyboardType="numeric"
                                 value={newOrder.price}
                                 onChangeText={(text) => setNewOrder({...newOrder, price: text})}
                             />
                         </View>
                         <View className="w-[48%]">
-                            <Text className="label mb-2">Deposit ($)</Text>
-                            <TextInput
-                                className="input"
+                            <NumberInput
+                                label="Deposit ($)"
                                 placeholder="0.00"
-                                keyboardType="numeric"
                                 value={newOrder.deposit}
                                 onChangeText={(text) => setNewOrder({...newOrder, deposit: text})}
                             />
                         </View>
                     </View>
 
-                    <Text className="label mb-2">Pickup Date</Text>
-                    <DatePickerInput
-                        date={newOrder.pickupDate}
-                        onChange={(date) => setNewOrder({...newOrder, pickupDate: date})}
-                    />
-                    <View className="mb-4" />
+                    <View className="mb-4">
+                        <DatePickerInput
+                            label="Pickup Date"
+                            value={newOrder.pickupDate}
+                            onChange={(date) => setNewOrder({...newOrder, pickupDate: date})}
+                        />
+                    </View>
 
-                    <Text className="label mb-2">Fitting Date</Text>
-                    <DatePickerInput
-                        date={newOrder.fittingDate}
-                        onChange={(date) => setNewOrder({...newOrder, fittingDate: date})}
-                    />
-                    <View className="mb-4" />
+                    <View className="mb-4">
+                        <DatePickerInput
+                            label="Fitting Date"
+                            value={newOrder.fittingDate}
+                            onChange={(date) => setNewOrder({...newOrder, fittingDate: date})}
+                        />
+                    </View>
 
-                    <Text className="label mb-2">Notes</Text>
-                    <TextInput
-                        className="input h-24 text-top"
-                        multiline
+                    <TextArea
+                        label="Notes"
                         placeholder="Add details..."
                         value={newOrder.notes}
                         onChangeText={(text) => setNewOrder({...newOrder, notes: text})}
                     />
 
-                    <Button 
+                    <PrimaryButton 
                         title="Create Order" 
                         onPress={handleCreateOrder}
                         loading={creating}

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import Screen from '../components/Screen';
 import Header from '../components/Header';
-import Card from '../components/Card';
-import Button from '../components/Button';
+import { StandardCard, BorderedCard } from '../components/presets/Cards';
+import { PrimaryButton } from '../components/presets/Buttons';
+import { PhoneInput } from '../components/presets/Inputs';
 import api from '../services/api';
 import socket from '../services/socket';
 import { formatDate } from '../utils/date';
@@ -89,26 +90,25 @@ const OrderTrackingScreen = () => {
         className="flex-1"
       >
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          <Card className="mb-6">
+          <StandardCard className="mb-6">
             <Text className="text-xs text-text-secondary uppercase tracking-widest mb-3 font-semibold">Enter Phone Number</Text>
             <View className="flex-row items-center space-x-3">
-              <TextInput
-                className="flex-1 bg-background border-2 border-border rounded-2xl px-5 py-4 text-primary font-medium text-base"
-                placeholder="e.g. 555-0123"
-                placeholderTextColor="#9CA3AF"
-                value={phone}
-                onChangeText={setPhone}
-                keyboardType="phone-pad"
-              />
-              <Button 
+              <View className="flex-1">
+                <PhoneInput
+                  value={phone}
+                  onChangeText={setPhone}
+                  className="mb-0" // Override default margin
+                />
+              </View>
+              <PrimaryButton 
                 title="Track" 
                 onPress={handleTrack}
                 loading={loading}
-                className="px-8"
+                className="px-8 py-4"
                 textClassName="text-sm"
               />
             </View>
-          </Card>
+          </StandardCard>
 
           {searched && orders.length === 0 && (
             <View className="items-center py-12">
@@ -120,7 +120,7 @@ const OrderTrackingScreen = () => {
           )}
 
           {orders.map(order => (
-            <Card key={order.id} className="mb-4 border-l-[6px] border-l-accent">
+            <BorderedCard key={order.id} className="mb-4 border-l-[6px]">
               <View className="flex-row justify-between items-start mb-3">
                 <View>
                   <Text className="text-xl font-bold text-primary">{order.item}</Text>
@@ -167,7 +167,7 @@ const OrderTrackingScreen = () => {
                   <Text className="text-xs text-text-secondary italic">"{order.notes}"</Text>
                 </View>
               ) : null}
-            </Card>
+            </BorderedCard>
           ))}
         </ScrollView>
       </KeyboardAvoidingView>

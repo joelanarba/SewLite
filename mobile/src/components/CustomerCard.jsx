@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import Card from './Card';
+import { BorderedCard } from './presets/Cards';
 import { formatDate } from '../utils/date';
 
 const CustomerCard = ({ customer }) => {
@@ -17,7 +17,7 @@ const CustomerCard = ({ customer }) => {
       activeOpacity={0.9}
       className="mb-4"
     >
-      <Card className="border-l-4 border-l-accent">
+      <BorderedCard>
         <View className="flex-row justify-between items-start mb-3">
           <View>
             <Text className="text-xl font-bold text-primary tracking-tight mb-1">
@@ -52,7 +52,7 @@ const CustomerCard = ({ customer }) => {
             </View>
           )}
         </View>
-      </Card>
+      </BorderedCard>
     </TouchableOpacity>
   );
 };

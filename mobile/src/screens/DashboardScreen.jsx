@@ -7,8 +7,8 @@ import { isDateToday } from '../utils/date';
 import CustomerCard from '../components/CustomerCard';
 import Screen from '../components/Screen';
 import Header from '../components/Header';
-import Card from '../components/Card';
-import Button from '../components/Button';
+import { PrimaryCard, SecondaryCard, GhostCard } from '../components/presets/Cards';
+import { OutlineButton } from '../components/presets/Buttons';
 
 const DashboardScreen = () => {
   const navigation = useNavigation();
@@ -65,9 +65,8 @@ const DashboardScreen = () => {
           <Text className="text-text-secondary text-sm uppercase tracking-widest font-semibold">
             Overview
           </Text>
-          <Button 
+          <OutlineButton 
             title="Track" 
-            variant="outline" 
             onPress={() => navigation.navigate('OrderTracking')}
             className="px-6"
             textClassName="text-sm"
@@ -75,7 +74,7 @@ const DashboardScreen = () => {
         </View>
 
         <View className="flex-row justify-between mb-8">
-          <Card className="w-[48%] bg-primary">
+          <PrimaryCard className="w-[48%]">
             <View className="items-center py-3">
               <Ionicons name="people" size={32} color="#F2C76E" />
               <Text className="text-4xl font-bold text-white mt-3">
@@ -85,8 +84,8 @@ const DashboardScreen = () => {
                 Total Clients
               </Text>
             </View>
-          </Card>
-          <Card className="w-[48%] bg-secondary">
+          </PrimaryCard>
+          <SecondaryCard className="w-[48%]">
             <View className="items-center py-3">
               <Ionicons name="notifications" size={32} color="#3C4EB0" />
               <Text className="text-4xl font-bold text-primary mt-3">
@@ -96,7 +95,7 @@ const DashboardScreen = () => {
                 Today's Actions
               </Text>
             </View>
-          </Card>
+          </SecondaryCard>
         </View>
 
         <View className="mb-8">
@@ -109,11 +108,11 @@ const DashboardScreen = () => {
           {upcomingPickups.length > 0 ? (
             upcomingPickups.map(c => <CustomerCard key={c.id} customer={c} />)
           ) : (
-            <Card className="bg-background/50">
+            <GhostCard>
               <Text className="text-text-secondary italic text-center py-6">
                 No upcoming pickups scheduled.
               </Text>
-            </Card>
+            </GhostCard>
           )}
         </View>
 
