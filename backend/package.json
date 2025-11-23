@@ -4,6 +4,9 @@
   "description": "Backend for Fashion Designer App",
   "main": "src/server.js",
   "scripts": {
+    "test": "cross-env NODE_ENV=test jest",
+    "test:watch": "cross-env NODE_ENV=test jest --watch",
+    "test:coverage": "cross-env NODE_ENV=test jest --coverage",
     "start": "node src/server.js",
     "dev": "cross-env NODE_ENV=development nodemon src/server.js"
   },
@@ -22,7 +25,10 @@
     "twilio": "^4.19.0"
   },
   "devDependencies": {
+    "@jest/globals": "^30.2.0",
     "cross-env": "^10.1.0",
-    "nodemon": "^3.0.1"
+    "jest": "^30.2.0",
+    "nodemon": "^3.0.1",
+    "supertest": "^7.1.4"
   }
 }
