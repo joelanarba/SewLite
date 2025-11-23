@@ -269,7 +269,11 @@ const CustomerViewScreen = () => {
         animationType="slide"
         presentationStyle="pageSheet"
       >
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
+        <KeyboardAvoidingView 
+            behavior={Platform.OS === "ios" ? "padding" : "height"} 
+            className="flex-1"
+            keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        >
             <View className="flex-1 bg-background p-6">
                 <View className="flex-row justify-between items-center mb-8">
                     <Text className="text-3xl font-bold text-primary uppercase">New Order</Text>
@@ -278,7 +282,10 @@ const CustomerViewScreen = () => {
                     </TouchableOpacity>
                 </View>
                 
-                <ScrollView showsVerticalScrollIndicator={false}>
+                <ScrollView 
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: 100 }}
+                >
                     <TextInput
                         label="Item Name"
                         placeholder="e.g. 3-Piece Suit"
