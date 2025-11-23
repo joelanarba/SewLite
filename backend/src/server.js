@@ -12,6 +12,7 @@ const globalErrorHandler = require('./middleware/errorMiddleware');
 const AppError = require('./utils/appError');
 const { sendSuccess } = require('./utils/responseHandler');
 const { versionMiddleware } = require('./middleware/versionMiddleware');
+const { protect } = require('./middleware/authMiddleware');
 const { deprecationWarningMiddleware } = require('./utils/apiDeprecation');
 
 // Load environment variables
@@ -49,13 +50,20 @@ app.use(express.json()); // Parse JSON bodies
 // Apply version middleware globally
 app.use(versionMiddleware);
 
+// Apply authentication middleware globally
+// Note: Health check route is excluded from auth in many cases, but for simplicity as per plan, we apply it globally first.
+// If we want to exclude health check, we should move it above this line or make the middleware conditional.
+// For now, let's keep it simple and apply it to /api, /customers, and /orders, but maybe leave root / open?
+// The plan said "Apply the middleware globally or to specific routes".
+// Let's apply it to the routes we want to protect.
+
 // Mount versioned API routes
-app.use('/api', apiRouter);
+app.use('/api', protect, apiRouter);
 
 // Legacy routes (for backward compatibility)
 // These will be deprecated in the future - add deprecation warnings
-app.use('/customers', deprecationWarningMiddleware, customerRoutes);
-app.use('/orders', deprecationWarningMiddleware, orderRoutes);
+app.use('/customers', protect, deprecationWarningMiddleware, customerRoutes);
+app.use('/orders', protect, deprecationWarningMiddleware, orderRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {
