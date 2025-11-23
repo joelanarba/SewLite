@@ -1,5 +1,6 @@
 const twilio = require('twilio');
 const dotenv = require('dotenv');
+const { ORDER_STATUS } = require('../config/constants');
 
 dotenv.config();
 
@@ -36,7 +37,7 @@ exports.sendSMS = async (to, body) => {
 exports.sendOrderStatusUpdate = async (customerPhone, customerName, orderItem, newStatus) => {
   let message = `Hi ${customerName}, the status of your order (${orderItem}) has been updated to: ${newStatus}.`;
   
-  if (newStatus === 'Ready') {
+  if (newStatus === ORDER_STATUS.READY) {
     message += ' It is now ready for pickup!';
   }
 

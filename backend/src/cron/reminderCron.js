@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const { db, admin } = require('../firebase');
 const messageService = require('../services/messageService');
+const { COLLECTIONS, NOTIFICATION_TYPES } = require('../config/constants');
 
 // Check for reminders every day at 6:00 AM
 const start = () => {
@@ -31,7 +32,7 @@ const start = () => {
       console.log(`Checking for reminders for date: ${startOfTomorrowZoned.toDateString()} (${TIMEZONE})`);
       console.log(`Query range (UTC): ${startOfTomorrow.toISOString()} - ${endOfTomorrow.toISOString()}`);
 
-      const customersRef = db.collection('customers');
+      const customersRef = db.collection(COLLECTIONS.CUSTOMERS);
       
       // Query for pickups tomorrow
       const pickupQuery = await customersRef
@@ -63,8 +64,8 @@ const start = () => {
           await messageService.sendSMS(customer.phone, message);
 
           // Log notification
-          await db.collection('customers').doc(doc.id).collection('notifications').add({
-            type: 'reminder',
+          await db.collection(COLLECTIONS.CUSTOMERS).doc(doc.id).collection(COLLECTIONS.NOTIFICATIONS).add({
+            type: NOTIFICATION_TYPES.REMINDER,
             subType: type,
             message: message,
             sentAt: admin.firestore.FieldValue.serverTimestamp(),

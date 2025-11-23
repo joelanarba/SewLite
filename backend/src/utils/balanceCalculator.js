@@ -1,4 +1,5 @@
 const { db } = require('../firebase');
+const { COLLECTIONS } = require('../config/constants');
 
 /**
  * Recalculates and updates the total balance for a customer based on their orders.
@@ -9,7 +10,7 @@ const updateCustomerBalance = async (customerId) => {
   try {
     if (!customerId) return 0;
 
-    const ordersSnapshot = await db.collection('orders')
+    const ordersSnapshot = await db.collection(COLLECTIONS.ORDERS)
       .where('customerId', '==', customerId)
       .get();
 
@@ -20,7 +21,7 @@ const updateCustomerBalance = async (customerId) => {
     });
 
     // Update customer document
-    await db.collection('customers').doc(customerId).update({
+    await db.collection(COLLECTIONS.CUSTOMERS).doc(customerId).update({
       balance: totalBalance
     });
 

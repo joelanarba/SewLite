@@ -1,4 +1,5 @@
 const Joi = require('joi');
+const { ORDER_STATUSES } = require('../config/constants');
 
 const createOrder = Joi.object({
   customerId: Joi.string().required(),
@@ -14,7 +15,7 @@ const createOrder = Joi.object({
 });
 
 const updateOrder = Joi.object({
-  status: Joi.string().valid('Pending', 'In Progress', 'Ready', 'Picked Up').optional(),
+  status: Joi.string().valid(...ORDER_STATUSES).optional(),
   measurements: Joi.object().optional(),
   price: Joi.number().optional(),
   deposit: Joi.number().optional(),

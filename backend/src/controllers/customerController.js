@@ -3,8 +3,9 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const { sendSuccess } = require('../utils/responseHandler');
 const { toTimestamp } = require('../utils/dateUtils');
+const { COLLECTIONS } = require('../config/constants');
 
-const COLLECTION_NAME = 'customers';
+const COLLECTION_NAME = COLLECTIONS.CUSTOMERS;
 
 
 

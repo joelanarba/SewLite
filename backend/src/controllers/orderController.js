@@ -5,8 +5,9 @@ const AppError = require('../utils/appError');
 const { sendSuccess } = require('../utils/responseHandler');
 const { updateCustomerBalance } = require('../utils/balanceCalculator');
 const { toTimestamp } = require('../utils/dateUtils');
+const { COLLECTIONS, ORDER_STATUS } = require('../config/constants');
 
-const COLLECTION_NAME = 'orders';
+const COLLECTION_NAME = COLLECTIONS.ORDERS;
 
 
 
@@ -52,7 +53,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     price: parseFloat(price) || 0,
     deposit: parseFloat(deposit) || 0,
     balance: (parseFloat(price) || 0) - (parseFloat(deposit) || 0),
-    status: 'Pending', // Pending, In Progress, Ready, Picked Up
+    status: ORDER_STATUS.PENDING,
     pickupDate: toTimestamp(pickupDate),
     fittingDate: toTimestamp(fittingDate),
     notes: notes || '',
@@ -62,7 +63,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
 
   const result = await db.runTransaction(async (t) => {
     // 1. Get customer ref and doc
-    const customerRef = db.collection('customers').doc(customerId);
+    const customerRef = db.collection(COLLECTIONS.CUSTOMERS).doc(customerId);
     const customerDoc = await t.get(customerRef);
 
     if (!customerDoc.exists) {
@@ -144,7 +145,7 @@ exports.updateOrder = catchAsync(async (req, res, next) => {
   // Notify Customer if status changed
   if (status && status !== currentOrder.status) {
     // Fetch customer details for notification since they are no longer in the order
-    const customerDoc = await db.collection('customers').doc(currentOrder.customerId).get();
+    const customerDoc = await db.collection(COLLECTIONS.CUSTOMERS).doc(currentOrder.customerId).get();
     if (customerDoc.exists) {
         const customerData = customerDoc.data();
         await sendOrderStatusUpdate(customerData.phone, customerData.name, currentOrder.item, status);
@@ -171,7 +172,7 @@ exports.trackOrder = catchAsync(async (req, res, next) => {
     }
 
     // 1. Find customer by phone
-    const customerSnapshot = await db.collection('customers')
+    const customerSnapshot = await db.collection(COLLECTIONS.CUSTOMERS)
         .where('phone', '==', phone)
         .limit(1)
         .get();
