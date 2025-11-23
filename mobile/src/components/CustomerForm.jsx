@@ -13,13 +13,13 @@ const CustomerSchema = Yup.object().shape({
   item: Yup.string(),
   pickupDate: Yup.string().matches(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD format'),
   fittingDate: Yup.string().matches(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD format'),
-  balance: Yup.number(),
+  balance: Yup.number().transform((value) => (isNaN(value) ? undefined : value)).nullable(),
   notes: Yup.string(),
   // Measurements
-  chest: Yup.string(),
-  waist: Yup.string(),
-  hips: Yup.string(),
-  length: Yup.string(),
+  chest: Yup.number().transform((value) => (isNaN(value) ? undefined : value)).positive('Must be positive').nullable(),
+  waist: Yup.number().transform((value) => (isNaN(value) ? undefined : value)).positive('Must be positive').nullable(),
+  hips: Yup.number().transform((value) => (isNaN(value) ? undefined : value)).positive('Must be positive').nullable(),
+  length: Yup.number().transform((value) => (isNaN(value) ? undefined : value)).positive('Must be positive').nullable(),
 });
 
 const CustomerForm = ({ initialValues, onSubmit, submitLabel = "Save" }) => {
