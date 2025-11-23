@@ -17,6 +17,13 @@ module.exports = {
         },
         border: '#E5E5E5',
       },
+      spacing: {
+        'container': '16px',
+        'card': '20px',
+        'section': '24px',
+        'element': '12px',
+        'tight': '8px',
+      },
     },
   },
   plugins: [],
