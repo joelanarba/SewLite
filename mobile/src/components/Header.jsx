@@ -10,7 +10,12 @@ export default function Header({ title, showBack = false, rightAction, rightIcon
     <View className="flex-row items-center justify-between py-5 mb-2">
       <View className="flex-row items-center">
         {showBack && (
-          <TouchableOpacity onPress={() => navigation.goBack()} className="mr-4 p-2">
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            className="mr-4 p-2"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
             <Ionicons name="arrow-back" size={26} color="#3C4EB0" />
           </TouchableOpacity>
         )}
@@ -19,7 +24,12 @@ export default function Header({ title, showBack = false, rightAction, rightIcon
         </Text>
       </View>
       {rightAction && rightIcon && (
-        <TouchableOpacity onPress={rightAction} className="p-3 bg-accent/20 rounded-full">
+        <TouchableOpacity 
+          onPress={rightAction} 
+          className="p-3 bg-accent/20 rounded-full"
+          accessibilityRole="button"
+          accessibilityLabel="Menu action"
+        >
           <Ionicons name={rightIcon} size={22} color="#3C4EB0" />
         </TouchableOpacity>
       )}

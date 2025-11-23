@@ -8,7 +8,9 @@ export default function Button({
   disabled = false,
   className = '',
   textClassName = '',
-  icon
+  icon,
+  accessibilityLabel,
+  accessibilityHint
 }) {
   const baseStyles = "py-4 px-8 rounded-2xl flex-row justify-center items-center shadow-md";
   
@@ -38,6 +40,10 @@ export default function Button({
       disabled={disabled}
       className={`${baseStyles} ${variants[variant]} ${disabled ? disabledStyles : ''} ${className}`}
       activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel || title}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled }}
     >
       {icon && <View className="mr-2">{icon}</View>}
       <Text className={`${textBaseStyles} ${textVariants[variant]} ${textClassName}`}>

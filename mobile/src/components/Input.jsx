@@ -10,7 +10,9 @@ export default function Input({
   keyboardType = 'default',
   multiline = false,
   numberOfLines = 1,
-  error
+  error,
+  accessibilityLabel,
+  accessibilityHint
 }) {
   return (
     <View className="mb-5">
@@ -31,6 +33,8 @@ export default function Input({
           multiline={multiline}
           numberOfLines={numberOfLines}
           textAlignVertical={multiline ? 'top' : 'center'}
+          accessibilityLabel={accessibilityLabel || label || placeholder}
+          accessibilityHint={accessibilityHint}
         />
       </View>
       {error && (

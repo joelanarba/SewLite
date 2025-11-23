@@ -16,6 +16,9 @@ const CustomerCard = ({ customer }) => {
       }}
       activeOpacity={0.9}
       className="mb-4"
+      accessibilityRole="button"
+      accessibilityLabel={`View details for ${customer.name}`}
+      accessibilityHint="Double tap to view customer profile"
     >
       <BorderedCard>
         <View className="flex-row justify-between items-start mb-3">
