@@ -20,6 +20,7 @@ const CustomerViewScreen = () => {
   const [customer, setCustomer] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newOrder, setNewOrder] = useState({
     item: '',
@@ -44,11 +45,14 @@ const CustomerViewScreen = () => {
   }, [id, customers]);
 
   const loadOrders = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const ordersData = await getCustomerOrders(id);
       setOrders(ordersData);
     } catch (error) {
       console.error('Error fetching orders:', error);
+      setError('Failed to load orders. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -192,32 +196,49 @@ const CustomerViewScreen = () => {
             />
         </View>
 
-        {orders.map(order => (
-            <StandardCard key={order.id} className="mb-4">
-                <View className="flex-row justify-between items-start mb-3">
-                    <View>
-                        <Text className="text-xl font-bold text-primary">{order.item}</Text>
-                        <Text className="text-xs text-text-secondary mt-1">#{order.id.slice(-6).toUpperCase()}</Text>
-                    </View>
-                    <TouchableOpacity onPress={() => handleUpdateStatus(order.id, order.status)}>
-                        <View className={`px-4 py-2 rounded-full ${getStatusBg(order.status)}`}>
-                            <Text className={`text-xs font-bold uppercase tracking-wider ${getStatusColor(order.status)}`}>
-                                {order.status.toUpperCase()}
-                            </Text>
-                        </View>
-                    </TouchableOpacity>
+        {error ? (
+            <GhostCard className="mb-4 border-l-4 border-l-red-500">
+                <View className="items-center py-4">
+                    <Ionicons name="alert-circle-outline" size={32} color="#EF4444" />
+                    <Text className="text-red-500 font-medium mt-2 mb-4 text-center">{error}</Text>
+                    <PrimaryButton 
+                        title="Retry" 
+                        onPress={loadOrders} 
+                        className="px-6 h-10"
+                        textClassName="text-sm"
+                    />
                 </View>
-                <View className="flex-row justify-between mt-3 pt-3 border-t border-border/50">
-                    <Text className="text-text-secondary font-medium">Pickup: <Text className="text-primary font-semibold">{formatDate(order.pickupDate)}</Text></Text>
-                    <Text className="font-bold text-red-500">Balance: ${order.balance}</Text>
-                </View>
-            </StandardCard>
-        ))}
-
-        {orders.length === 0 && (
-            <GhostCard>
-                <Text className="text-text-secondary italic text-center py-6">No active orders.</Text>
             </GhostCard>
+        ) : (
+            <>
+                {orders.map(order => (
+                    <StandardCard key={order.id} className="mb-4">
+                        <View className="flex-row justify-between items-start mb-3">
+                            <View>
+                                <Text className="text-xl font-bold text-primary">{order.item}</Text>
+                                <Text className="text-xs text-text-secondary mt-1">#{order.id.slice(-6).toUpperCase()}</Text>
+                            </View>
+                            <TouchableOpacity onPress={() => handleUpdateStatus(order.id, order.status)}>
+                                <View className={`px-4 py-2 rounded-full ${getStatusBg(order.status)}`}>
+                                    <Text className={`text-xs font-bold uppercase tracking-wider ${getStatusColor(order.status)}`}>
+                                        {order.status.toUpperCase()}
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                        <View className="flex-row justify-between mt-3 pt-3 border-t border-border/50">
+                            <Text className="text-text-secondary font-medium">Pickup: <Text className="text-primary font-semibold">{formatDate(order.pickupDate)}</Text></Text>
+                            <Text className="font-bold text-red-500">Balance: ${order.balance}</Text>
+                        </View>
+                    </StandardCard>
+                ))}
+
+                {orders.length === 0 && (
+                    <GhostCard>
+                        <Text className="text-text-secondary italic text-center py-6">No active orders.</Text>
+                    </GhostCard>
+                )}
+            </>
         )}
 
         <Text className="text-2xl font-bold text-primary uppercase tracking-tight mb-4 mt-6">Measurements</Text>
