@@ -6,6 +6,8 @@ const { sendSuccess } = require('../utils/responseHandler');
 const { updateCustomerBalance } = require('../utils/balanceCalculator');
 const { toTimestamp } = require('../utils/dateUtils');
 const { COLLECTIONS, ORDER_STATUS } = require('../config/constants');
+const { SOCKET_EVENT_NAMES } = require('../config/socketEvents');
+const { emitTypedEvent } = require('../utils/socketValidation');
 
 const COLLECTION_NAME = COLLECTIONS.ORDERS;
 
@@ -84,10 +86,18 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     return { orderId: orderRef.id, newOrderData };
   });
   
-  // Emit socket event if io is attached to app
+  /**
+   * Emit socket event to notify clients of new order
+   * @event orderUpdated
+   * @see SOCKET_EVENTS.md for payload schema
+   */
   const io = req.app.get('io');
   if (io) {
-    io.emit('orderUpdated', { orderId: result.orderId, ...result.newOrderData, id: result.orderId });
+    emitTypedEvent(io, SOCKET_EVENT_NAMES.ORDER_UPDATED, { 
+      orderId: result.orderId, 
+      ...result.newOrderData, 
+      id: result.orderId 
+    });
   }
 
   // Note: updateCustomerBalance is no longer needed as we updated it atomically
@@ -152,10 +162,14 @@ exports.updateOrder = catchAsync(async (req, res, next) => {
     }
   }
 
-  // Emit socket event
+  /**
+   * Emit socket event to notify clients of updated order
+   * @event orderUpdated
+   * @see SOCKET_EVENTS.md for payload schema
+   */
   const io = req.app.get('io');
   if (io) {
-    io.emit('orderUpdated', updatedOrder);
+    emitTypedEvent(io, SOCKET_EVENT_NAMES.ORDER_UPDATED, updatedOrder);
   }
 
   // Update customer balance
