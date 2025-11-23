@@ -44,23 +44,26 @@ function TabNavigator() {
 }
 
 import { AppProviders } from './src/context/AppProviders';
+import ErrorBoundary from './src/components/ErrorBoundary';
 
 export default function App() {
   return (
-    <AppProviders>
-      <NavigationContainer>
-        <StatusBar style="auto" />
-        <Stack.Navigator>
-          <Stack.Screen 
-            name="Main" 
-            component={TabNavigator} 
-            options={{ headerShown: false }} 
-          />
-          <Stack.Screen name="CustomerView" component={CustomerViewScreen} options={{ title: 'Customer Details' }} />
-          <Stack.Screen name="CustomerEdit" component={CustomerEditScreen} options={{ title: 'Edit Customer' }} />
-          <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} options={{ title: 'Track Order' }} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </AppProviders>
+    <ErrorBoundary>
+      <AppProviders>
+        <NavigationContainer>
+          <StatusBar style="auto" />
+          <Stack.Navigator>
+            <Stack.Screen 
+              name="Main" 
+              component={TabNavigator} 
+              options={{ headerShown: false }} 
+            />
+            <Stack.Screen name="CustomerView" component={CustomerViewScreen} options={{ title: 'Customer Details' }} />
+            <Stack.Screen name="CustomerEdit" component={CustomerEditScreen} options={{ title: 'Edit Customer' }} />
+            <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} options={{ title: 'Track Order' }} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AppProviders>
+    </ErrorBoundary>
   );
 }
