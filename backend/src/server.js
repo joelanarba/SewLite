@@ -14,9 +14,9 @@ const globalErrorHandler = require('./middleware/errorMiddleware');
 const AppError = require('./utils/appError');
 const { sendSuccess } = require('./utils/responseHandler');
 const { versionMiddleware } = require('./middleware/versionMiddleware');
-const { protect } = require('./middleware/authMiddleware');
+const { protect, authenticate } = require('./middleware/authMiddleware');
 const { deprecationWarningMiddleware } = require('./utils/apiDeprecation');
-const { globalRateLimiter, smsRateLimiter } = require('./middleware/rateLimitMiddleware');
+const { globalRateLimiter } = require('./middleware/rateLimitMiddleware');
 
 // Load environment variables
 dotenv.config();
@@ -81,22 +81,7 @@ app.use('/api', globalRateLimiter);
 app.use('/customers', globalRateLimiter);
 app.use('/orders', globalRateLimiter);
 
-// Apply authentication middleware globally
-// Note: Health check route is excluded from auth in many cases, but for simplicity as per plan, we apply it globally first.
-// If we want to exclude health check, we should move it above this line or make the middleware conditional.
-// For now, let's keep it simple and apply it to /api, /customers, and /orders, but maybe leave root / open?
-// The plan said "Apply the middleware globally or to specific routes".
-// Let's apply it to the routes we want to protect.
-
-// Mount versioned API routes
-app.use('/api', protect, apiRouter);
-
-// Legacy routes (for backward compatibility)
-// These will be deprecated in the future - add deprecation warnings
-app.use('/customers', protect, deprecationWarningMiddleware, customerRoutes);
-app.use('/orders', protect, deprecationWarningMiddleware, orderRoutes);
-
-// Health check endpoint
+// Health check endpoint (public, no auth required)
 app.get('/', (req, res) => {
   sendSuccess(res, { 
     status: 'OK',
@@ -104,6 +89,18 @@ app.get('/', (req, res) => {
     apiEndpoint: '/api/v1'
   }, 'Fashion Designer Backend is running');
 });
+
+// Mount versioned API routes with Firebase authentication
+// Public auth endpoints are handled within the auth router
+app.use('/api', apiRouter);
+
+// Apply Firebase authentication to specific v1 routes
+// We need to apply it after mounting the router, so we'll handle it within the route files
+// Or we can selectively apply it here
+
+// Legacy routes (for backward compatibility) - keep using API key
+app.use('/customers', protect, deprecationWarningMiddleware, customerRoutes);
+app.use('/orders', protect, deprecationWarningMiddleware, orderRoutes);
 
 // Handle unhandled routes
 app.all('*', (req, res, next) => {

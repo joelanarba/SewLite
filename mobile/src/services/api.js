@@ -1,6 +1,8 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000'; 
+const TOKEN_KEY = '@user_token';
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -8,6 +10,28 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Add request interceptor to attach authentication token
+api.interceptors.request.use(
+  async (config) => {
+    try {
+      // Get token from AsyncStorage
+      const token = await AsyncStorage.getItem(TOKEN_KEY);
+      
+      if (token) {
+        // Attach token to Authorization header
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error('Error getting auth token:', error);
+    }
+    
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Add response interceptor to unwrap standardized response
 api.interceptors.response.use(
@@ -24,7 +48,19 @@ api.interceptors.response.use(
     }
     return response;
   },
-  (error) => {
+  async (error) => {
+    // Handle 401 Unauthorized errors
+    if (error.response && error.response.status === 401) {
+      // Token expired or invalid - clear auth data
+      try {
+        await AsyncStorage.removeItem(TOKEN_KEY);
+        await AsyncStorage.removeItem('@user_data');
+        // The auth state listener in AuthContext will detect this and redirect to login
+      } catch (storageError) {
+        console.error('Error clearing auth data:', storageError);
+      }
+    }
+    
     return Promise.reject(error);
   }
 );

@@ -10,8 +10,11 @@ const router = express.Router();
 // Import v1 route modules
 const customerRoutes = require('./customerRoutes');
 const orderRoutes = require('./orderRoutes');
+const authRoutes = require('./authRoutes');
 
 // Mount v1 routes
+// Auth routes are public (no authentication required for /register, etc.)
+router.use('/auth', authRoutes);
 router.use('/customers', customerRoutes);
 router.use('/orders', orderRoutes);
 
@@ -23,6 +26,7 @@ router.get('/', (req, res) => {
       version: 'v1',
       status: 'active',
       endpoints: {
+        auth: '/api/v1/auth',
         customers: '/api/v1/customers',
         orders: '/api/v1/orders'
       },

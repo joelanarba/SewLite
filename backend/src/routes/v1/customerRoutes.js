@@ -1,13 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const customerController = require('../../controllers/customerController');
+const { authenticate } = require('../../middleware/authMiddleware');
 const validate = require('../../middleware/validate');
 const sanitizeMiddleware = require('../../middleware/sanitizeMiddleware');
 const requireFirebase = require('../../middleware/requireFirebase');
 const { createCustomer, updateCustomer } = require('../../validations/customerValidation');
 
+// Apply middleware to all routes
 router.use(sanitizeMiddleware);
 router.use(requireFirebase);
+router.use(authenticate); // Require Firebase authentication for all customer routes
 
 router.get('/', customerController.getAllCustomers);
 router.get('/:id', customerController.getCustomerById);

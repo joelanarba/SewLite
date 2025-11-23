@@ -8,6 +8,7 @@ const COLLECTIONS = {
   CUSTOMERS: 'customers',
   ORDERS: 'orders',
   NOTIFICATIONS: 'notifications',
+  USERS: 'users',
 };
 
 // Order status values
