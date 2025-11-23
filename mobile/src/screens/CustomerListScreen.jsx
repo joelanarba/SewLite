@@ -42,6 +42,12 @@ const CustomerListScreen = () => {
         }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20 }}
+        // Performance optimizations
+        removeClippedSubviews={true}
+        maxToRenderPerBatch={10}
+        windowSize={10}
+        keyboardDismissMode="on-drag"
+        initialNumToRender={10}
       />
     </Screen>
   );
