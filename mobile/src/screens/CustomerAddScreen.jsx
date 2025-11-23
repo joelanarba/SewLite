@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { createCustomer } from '../services/api';
+import { useData } from '../context/DataContext';
 import CustomerForm from '../components/CustomerForm';
 import Screen from '../components/Screen';
 import Header from '../components/Header';
 
 const CustomerAddScreen = () => {
   const navigation = useNavigation();
+  const { addCustomer } = useData();
 
   const handleSubmit = async (values) => {
     try {
@@ -27,7 +28,7 @@ const CustomerAddScreen = () => {
         }
       };
 
-      await createCustomer(payload);
+      await addCustomer(payload);
       Alert.alert('Success', 'Customer created successfully');
       navigation.goBack();
     } catch (error) {

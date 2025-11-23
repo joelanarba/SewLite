@@ -1,8 +1,8 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, ScrollView, RefreshControl } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { fetchCustomers } from '../services/api';
+import { useData } from '../context/DataContext';
 import { isDateToday } from '../utils/date';
 import CustomerCard from '../components/CustomerCard';
 import Screen from '../components/Screen';
@@ -12,31 +12,10 @@ import { OutlineButton } from '../components/presets/Buttons';
 
 const DashboardScreen = () => {
   const navigation = useNavigation();
-  const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const loadCustomers = async () => {
-    try {
-      const data = await fetchCustomers();
-      setCustomers(data);
-    } catch (error) {
-      console.error('Error loading customers:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      loadCustomers();
-    }, [])
-  );
+  const { customers, loading, refreshData } = useData();
 
   const onRefresh = () => {
-    setRefreshing(true);
-    loadCustomers();
+    refreshData();
   };
 
   const upcomingPickups = customers
@@ -55,7 +34,7 @@ const DashboardScreen = () => {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl 
-            refreshing={refreshing} 
+            refreshing={loading} 
             onRefresh={onRefresh} 
             tintColor="#3C4EB0" 
           />

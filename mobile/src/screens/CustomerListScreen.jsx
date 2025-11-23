@@ -1,32 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, FlatList } from 'react-native';
-import { useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { fetchCustomers } from '../services/api';
+import { useData } from '../context/DataContext';
 import CustomerCard from '../components/CustomerCard';
 import Screen from '../components/Screen';
 import Header from '../components/Header';
 import { SearchInput } from '../components/presets/Inputs';
 
 const CustomerListScreen = () => {
-  const [customers, setCustomers] = useState([]);
+  const { customers } = useData();
   const [search, setSearch] = useState('');
-  const isFocused = useIsFocused();
-
-  useEffect(() => {
-    if (isFocused) {
-      loadCustomers();
-    }
-  }, [isFocused]);
-
-  const loadCustomers = async () => {
-    try {
-      const data = await fetchCustomers();
-      setCustomers(data);
-    } catch (error) {
-      console.error('Error loading customers:', error);
-    }
-  };
 
   const filteredCustomers = customers.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) || 

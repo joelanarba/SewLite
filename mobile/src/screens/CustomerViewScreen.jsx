@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Alert, ActivityIndicator, Modal, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { fetchCustomer, deleteCustomer, fetchOrders, createOrder, updateOrder } from '../services/api';
+import { useData } from '../context/DataContext';
 import { formatDate } from '../utils/date';
 import Screen from '../components/Screen';
 import Header from '../components/Header';
@@ -15,6 +15,8 @@ const CustomerViewScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const { id } = route.params;
+  const { customers, getCustomerOrders, addOrder, updateOrder, deleteCustomer } = useData();
+  
   const [customer, setCustomer] = useState(null);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,24 +32,23 @@ const CustomerViewScreen = () => {
   const [creating, setCreating] = useState(false);
 
   useEffect(() => {
-    console.log('CustomerViewScreen mounted for ID:', id);
-    loadData();
-  }, [id]);
+    const foundCustomer = customers.find(c => c.id === id);
+    if (foundCustomer) {
+      setCustomer(foundCustomer);
+      loadOrders();
+    } else {
+      // If not found in context (e.g. deep link), maybe fetch or go back
+      // For now, assume it's in the list or we go back
+      navigation.goBack();
+    }
+  }, [id, customers]);
 
-  const loadData = async () => {
-    console.log('Fetching data for customer:', id);
+  const loadOrders = async () => {
     try {
-      const [customerData, ordersData] = await Promise.all([
-        fetchCustomer(id),
-        fetchOrders(id)
-      ]);
-      console.log('Data fetched successfully');
-      setCustomer(customerData);
+      const ordersData = await getCustomerOrders(id);
       setOrders(ordersData);
     } catch (error) {
-      console.error('Error fetching details:', error);
-      Alert.alert('Error', 'Failed to fetch details');
-      navigation.goBack();
+      console.error('Error fetching orders:', error);
     } finally {
       setLoading(false);
     }
@@ -61,7 +62,7 @@ const CustomerViewScreen = () => {
 
     setCreating(true);
     try {
-      await createOrder({
+      await addOrder({
         customerId: id,
         customerName: customer.name,
         customerPhone: customer.phone,
@@ -79,7 +80,7 @@ const CustomerViewScreen = () => {
         fittingDate: new Date().toISOString().split('T')[0],
         notes: ''
       });
-      loadData(); // Reload to see new order
+      loadOrders(); // Reload to see new order
       Alert.alert('Success', 'Order created successfully');
     } catch (error) {
       Alert.alert('Error', 'Failed to create order');

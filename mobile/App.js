@@ -43,20 +43,24 @@ function TabNavigator() {
   );
 }
 
+import { DataProvider } from './src/context/DataContext';
+
 export default function App() {
   return (
-    <NavigationContainer>
-      <StatusBar style="auto" />
-      <Stack.Navigator>
-        <Stack.Screen 
-          name="Main" 
-          component={TabNavigator} 
-          options={{ headerShown: false }} 
-        />
-        <Stack.Screen name="CustomerView" component={CustomerViewScreen} options={{ title: 'Customer Details' }} />
-        <Stack.Screen name="CustomerEdit" component={CustomerEditScreen} options={{ title: 'Edit Customer' }} />
-        <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} options={{ title: 'Track Order' }} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <DataProvider>
+      <NavigationContainer>
+        <StatusBar style="auto" />
+        <Stack.Navigator>
+          <Stack.Screen 
+            name="Main" 
+            component={TabNavigator} 
+            options={{ headerShown: false }} 
+          />
+          <Stack.Screen name="CustomerView" component={CustomerViewScreen} options={{ title: 'Customer Details' }} />
+          <Stack.Screen name="CustomerEdit" component={CustomerEditScreen} options={{ title: 'Edit Customer' }} />
+          <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} options={{ title: 'Track Order' }} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </DataProvider>
   );
 }

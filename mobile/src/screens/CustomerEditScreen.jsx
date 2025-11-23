@@ -1,7 +1,7 @@
 import React from 'react';
 import { Alert } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { updateCustomer } from '../services/api';
+import { useData } from '../context/DataContext';
 import CustomerForm from '../components/CustomerForm';
 import Screen from '../components/Screen';
 import Header from '../components/Header';
@@ -10,6 +10,7 @@ const CustomerEditScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { customer } = route.params;
+  const { updateCustomer } = useData();
 
   const handleSubmit = async (values) => {
     try {
