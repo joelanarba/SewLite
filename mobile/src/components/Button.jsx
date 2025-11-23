@@ -1,5 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
 export default function Button({ 
   title, 
@@ -34,9 +35,14 @@ export default function Button({
 
   const disabledStyles = "opacity-50";
 
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onPress?.();
+  };
+
   return (
     <TouchableOpacity 
-      onPress={onPress} 
+      onPress={handlePress} 
       disabled={disabled}
       className={`${baseStyles} ${variants[variant]} ${disabled ? disabledStyles : ''} ${className}`}
       activeOpacity={0.8}

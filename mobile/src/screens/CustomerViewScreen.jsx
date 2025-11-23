@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, Alert, ActivityIndicator, Modal, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useData } from '../context/DataContext';
 import { formatDate } from '../utils/date';
 import Screen from '../components/Screen';
@@ -81,6 +82,8 @@ const CustomerViewScreen = () => {
     const statuses = ['Pending', 'In Progress', 'Ready', 'Picked Up'];
     const currentIndex = statuses.indexOf(currentStatus);
     const nextStatus = statuses[(currentIndex + 1) % statuses.length];
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     try {
       await updateOrder(orderId, { status: nextStatus });

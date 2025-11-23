@@ -2,18 +2,22 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { BorderedCard } from './presets/Cards';
 import { formatDate } from '../utils/date';
 
 const CustomerCard = ({ customer }) => {
   const navigation = useNavigation();
 
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    console.log('Navigating to CustomerView with ID:', customer.id);
+    navigation.navigate('CustomerView', { id: customer.id });
+  };
+
   return (
     <TouchableOpacity 
-      onPress={() => {
-        console.log('Navigating to CustomerView with ID:', customer.id);
-        navigation.navigate('CustomerView', { id: customer.id });
-      }}
+      onPress={handlePress}
       activeOpacity={0.9}
       className="mb-4"
       accessibilityRole="button"
