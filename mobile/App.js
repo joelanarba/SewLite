@@ -43,11 +43,11 @@ function TabNavigator() {
   );
 }
 
-import { DataProvider } from './src/context/DataContext';
+import { AppProviders } from './src/context/AppProviders';
 
 export default function App() {
   return (
-    <DataProvider>
+    <AppProviders>
       <NavigationContainer>
         <StatusBar style="auto" />
         <Stack.Navigator>
@@ -61,6 +61,6 @@ export default function App() {
           <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} options={{ title: 'Track Order' }} />
         </Stack.Navigator>
       </NavigationContainer>
-    </DataProvider>
+    </AppProviders>
   );
 }
