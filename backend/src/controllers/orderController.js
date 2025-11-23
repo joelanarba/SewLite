@@ -47,7 +47,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     return next(new AppError('Customer ID and Item are required', 400));
   }
 
-  const newOrder = {
+  const newOrderData = {
     customerId,
     // customerName and customerPhone are removed for normalization
     item,
@@ -63,18 +63,38 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     updatedAt: admin.firestore.FieldValue.serverTimestamp(),
   };
 
-  const docRef = await db.collection(COLLECTION_NAME).add(newOrder);
+  const result = await db.runTransaction(async (t) => {
+    // 1. Get customer ref and doc
+    const customerRef = db.collection('customers').doc(customerId);
+    const customerDoc = await t.get(customerRef);
+
+    if (!customerDoc.exists) {
+      throw new AppError('Customer not found', 404);
+    }
+
+    // 2. Create new order ref
+    const orderRef = db.collection(COLLECTION_NAME).doc();
+    
+    // 3. Calculate new customer balance
+    const currentBalance = customerDoc.data().balance || 0;
+    const newCustomerBalance = currentBalance + newOrderData.balance;
+
+    // 4. Perform writes
+    t.set(orderRef, newOrderData);
+    t.update(customerRef, { balance: newCustomerBalance });
+
+    return { orderId: orderRef.id, newOrderData };
+  });
   
   // Emit socket event if io is attached to app
   const io = req.app.get('io');
   if (io) {
-    io.emit('orderUpdated', { orderId: docRef.id, ...newOrder, id: docRef.id });
+    io.emit('orderUpdated', { orderId: result.orderId, ...result.newOrderData, id: result.orderId });
   }
 
-  // Update customer balance
-  await updateCustomerBalance(customerId);
+  // Note: updateCustomerBalance is no longer needed as we updated it atomically
 
-  sendSuccess(res, { id: docRef.id }, 'Order created successfully', 201);
+  sendSuccess(res, { id: result.orderId }, 'Order created successfully', 201);
 });
 
 // PUT /orders/:id
