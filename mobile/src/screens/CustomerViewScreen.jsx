@@ -98,11 +98,15 @@ const CustomerViewScreen = () => {
     const currentIndex = statuses.indexOf(currentStatus);
     const nextStatus = statuses[(currentIndex + 1) % statuses.length];
 
+    // Optimistic update - update UI immediately
+    const previousOrders = orders;
+    setOrders(orders.map(o => o.id === orderId ? { ...o, status: nextStatus } : o));
+
     try {
       await updateOrder(orderId, { status: nextStatus });
-      // Optimistic update
-      setOrders(orders.map(o => o.id === orderId ? { ...o, status: nextStatus } : o));
     } catch (error) {
+      // Revert on error
+      setOrders(previousOrders);
       Alert.alert('Error', 'Failed to update status');
     }
   };
