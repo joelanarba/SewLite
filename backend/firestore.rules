@@ -1,8 +1,12 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Deny read/write access to everyone by default
-    // The backend uses Firebase Admin SDK which bypasses these rules
+    // SECURITY NOTE:
+    // Direct client access to Firestore is strictly prohibited to enforce business logic and security
+    // at the API layer. All data access must go through the backend endpoints.
+    //
+    // The backend uses the Firebase Admin SDK, which operates with privileged access
+    // and bypasses these rules entirely.
     match /{document=**} {
       allow read, write: if false;
     }
