@@ -18,8 +18,6 @@ const CustomerViewScreen = () => {
   const { customers, getCustomerOrders, addOrder, updateOrder, deleteCustomer } = useData();
   
   const [customer, setCustomer] = useState(null);
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newOrder, setNewOrder] = useState({
@@ -36,27 +34,14 @@ const CustomerViewScreen = () => {
     const foundCustomer = customers.find(c => c.id === id);
     if (foundCustomer) {
       setCustomer(foundCustomer);
-      loadOrders();
     } else {
-      // If not found in context (e.g. deep link), maybe fetch or go back
-      // For now, assume it's in the list or we go back
       navigation.goBack();
     }
   }, [id, customers]);
 
-  const loadOrders = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const ordersData = await getCustomerOrders(id);
-      setOrders(ordersData);
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      setError('Failed to load orders. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Get orders from context
+  const orders = getCustomerOrders(id);
+  const loading = false; // No separate loading state needed
 
   const handleCreateOrder = async () => {
     if (!newOrder.item || !newOrder.price) {
@@ -84,7 +69,6 @@ const CustomerViewScreen = () => {
         fittingDate: new Date().toISOString().split('T')[0],
         notes: ''
       });
-      loadOrders(); // Reload to see new order
       Alert.alert('Success', 'Order created successfully');
     } catch (error) {
       Alert.alert('Error', 'Failed to create order');
@@ -98,15 +82,9 @@ const CustomerViewScreen = () => {
     const currentIndex = statuses.indexOf(currentStatus);
     const nextStatus = statuses[(currentIndex + 1) % statuses.length];
 
-    // Optimistic update - update UI immediately
-    const previousOrders = orders;
-    setOrders(orders.map(o => o.id === orderId ? { ...o, status: nextStatus } : o));
-
     try {
       await updateOrder(orderId, { status: nextStatus });
     } catch (error) {
-      // Revert on error
-      setOrders(previousOrders);
       Alert.alert('Error', 'Failed to update status');
     }
   };

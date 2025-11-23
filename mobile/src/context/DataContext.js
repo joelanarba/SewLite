@@ -26,6 +26,7 @@ export const useData = () => {
 export const DataProvider = ({ children }) => {
   const { user } = useAuth();
   const [customers, setCustomers] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -115,16 +116,15 @@ export const DataProvider = ({ children }) => {
   // For now, we'll just provide wrappers that also trigger a refresh of the specific customer if needed
   // Ideally, we'd have a more normalized state, but for this refactor we'll keep it simple
   
-  const getCustomerOrders = async (customerId) => {
-    return await apiFetchOrders(customerId);
+  const getCustomerOrders = (customerId) => {
+    return orders.filter(o => o.customerId === customerId);
   };
 
   const addOrder = async (orderData) => {
     try {
       const newOrder = await apiCreateOrder(orderData);
-      // Refresh customers to update balance/status if needed
-      // In a more complex app, we'd optimistically update the specific customer in the list
-      await loadData(); 
+      setOrders(prev => [newOrder, ...prev]);
+      await loadData(); // Still refresh customers for balance updates
       return newOrder;
     } catch (err) {
       throw err;
@@ -134,8 +134,8 @@ export const DataProvider = ({ children }) => {
   const updateOrder = async (id, orderData) => {
     try {
       const updatedOrder = await apiUpdateOrder(id, orderData);
-      // Refresh customers to update balance/status if needed
-      await loadData();
+      setOrders(prev => prev.map(o => o.id === id ? updatedOrder : o));
+      await loadData(); // Still refresh customers for balance updates
       return updatedOrder;
     } catch (err) {
       throw err;
@@ -144,6 +144,7 @@ export const DataProvider = ({ children }) => {
 
   const value = {
     customers,
+    orders,
     loading,
     error,
     refreshData,
