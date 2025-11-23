@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,7 +14,7 @@ export default function DatePickerInput({
 }) {
   const [show, setShow] = useState(false);
 
-  const handleChange = (event, selectedDate) => {
+  const handleChange = useCallback((event, selectedDate) => {
     if (Platform.OS === 'android') {
       setShow(false);
     }
@@ -22,7 +22,11 @@ export default function DatePickerInput({
     if (selectedDate) {
       onChange(formatDateForBackend(selectedDate));
     }
-  };
+  }, [onChange]);
+
+  const handlePress = useCallback(() => {
+    setShow(true);
+  }, []);
 
   return (
     <View className="mb-5">
@@ -33,7 +37,7 @@ export default function DatePickerInput({
       )}
       
       <TouchableOpacity 
-        onPress={() => setShow(true)}
+        onPress={handlePress}
         className={`bg-white border-2 ${error ? 'border-red-500' : 'border-border'} rounded-2xl px-5 py-4 shadow-sm flex-row justify-between items-center`}
       >
         <Text className={`text-base font-medium ${value ? 'text-text-primary' : 'text-gray-400'}`}>
